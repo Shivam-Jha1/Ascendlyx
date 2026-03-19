@@ -1,0 +1,30 @@
+{
+  "cacheVersion": "1.0.0",
+  "assetsCacheStrategy": {
+    "pattern": {
+      "globPatterns": [
+        "**/*.{js,css,html,png,jpg,jpeg,gif,svg,woff,woff2,ttf,eot}"
+      ],
+      "ignorePatterns": [
+        "index.html",
+        ".htaccess",
+        ".ngsummary.json",
+        "**/*.map"
+      ]
+    },
+    "strategy": "cache-first",
+    "cacheName": "ascendlyx-assets",
+    "maxAge": 30
+  },
+  "navigationCacheStrategy": {
+    "urls": ["/"],
+    "strategy": "network-first",
+    "cacheName": "ascendlyx-nav"
+  },
+  "apiCacheStrategy": {
+    "pattern": "/api/**",
+    "strategy": "network-first",
+    "cacheName": "ascendlyx-api",
+    "maxAge": 3600
+  }
+}

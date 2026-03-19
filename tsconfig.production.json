@@ -1,0 +1,19 @@
+# Production Build Configuration
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/frontend",
+    "sourceMap": false,
+    "optimization": true,
+    "buildOptimizer": true,
+    "fileReplacements": [
+      {
+        "replace": "src/environments/environment.ts",
+        "with": "src/environments/environment.production.ts"
+      }
+    ]
+  },
+  "angularCompilerOptions": {
+    "enableIvy": true
+  }
+}
