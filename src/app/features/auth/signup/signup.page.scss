@@ -1,8 +1,104 @@
-.signup-page {
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #eee;
+// ═══════════════════════════════════════
+//  SIGNUP SCREEN — Centered card layout
+// ═══════════════════════════════════════
+
+.signup-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 60px 20px;
+  background: var(--ax-dark-bg);
+}
+
+.su-logo {
+  font-family: var(--ax-font-head);
+  font-size: 24px;
+  font-weight: 800;
+  background: var(--ax-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 36px;
+}
+
+.signup-box {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
+}
+
+// ─── Header ───
+.su-header {
+  margin-bottom: 28px;
+}
+
+.su-step {
+  font-size: 12px;
+  color: var(--ax-purple);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.su-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.su-bar {
+  height: 3px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+
+  &.active {
+    background: var(--ax-purple);
+  }
+
+  &.done {
+    background: var(--ax-green);
+  }
+}
+
+.su-title {
+  font-family: var(--ax-font-head);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ax-text-light);
+}
+
+.su-sub {
+  color: var(--ax-text-muted);
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+// ─── Footer link ───
+.su-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--ax-text-muted);
+
+  a {
+    color: var(--ax-purple);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--ax-blue);
+    }
+  }
+}
+
+// ─── Responsive ───
+@media (max-width: 500px) {
+  .signup-box {
+    padding: 28px 20px;
+  }
 }

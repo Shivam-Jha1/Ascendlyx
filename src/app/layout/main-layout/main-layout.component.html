@@ -1,8 +1,14 @@
-<div class="main-layout">
-  <app-navbar></app-navbar>
-  <div class="layout-body">
-    <app-sidebar></app-sidebar>
-    <div class="content">
+<div class="app-shell">
+  <!-- Sidebar -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Main content area -->
+  <div class="main-content">
+    <!-- Top navbar -->
+    <app-navbar></app-navbar>
+
+    <!-- Page content injected here -->
+    <div class="page-content">
       <router-outlet></router-outlet>
     </div>
   </div>

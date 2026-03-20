@@ -1,8 +1,173 @@
-.login-page {
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #eee;
+// ═══════════════════════════════════════
+//  LOGIN SCREEN — Split panel layout
+// ═══════════════════════════════════════
+
+.login-screen {
+  display: flex;
+  min-height: 100vh;
+  background: var(--ax-dark-bg);
+}
+
+// ─── Left panel (branding + illustration) ───
+.login-left {
+  flex: 1;
+  background: linear-gradient(145deg, #0F172A 0%, #1a1040 60%, #0d1f3c 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(108, 99, 255, 0.2) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(0, 194, 255, 0.15) 0%, transparent 70%);
+    bottom: 10%;
+    right: 5%;
+  }
+}
+
+.ll-brand {
+  font-family: var(--ax-font-head);
+  font-size: 32px;
+  font-weight: 800;
+  background: var(--ax-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.ll-tagline {
+  color: var(--ax-text-muted);
+  font-size: 15px;
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.ll-illustration {
+  position: relative;
+  width: 360px;
+  height: 320px;
+}
+
+.ll-social-proof {
+  position: relative;
+  margin-top: 32px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ax-text-muted);
+
+  strong {
+    color: var(--ax-text-light);
+  }
+}
+
+// ─── Right panel (form) ───
+.login-right {
+  width: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 50px;
+  background: var(--ax-dark-bg);
+}
+
+.login-form-box {
+  width: 100%;
+  max-width: 380px;
+}
+
+.lf-title {
+  font-family: var(--ax-font-head);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--ax-text-light);
+}
+
+.lf-sub {
+  color: var(--ax-text-muted);
+  font-size: 14px;
+  margin-bottom: 36px;
+}
+
+.forgot-link {
+  font-size: 13px;
+  color: var(--ax-purple);
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ax-blue);
+  }
+}
+
+.lf-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--ax-text-muted);
+
+  a {
+    color: var(--ax-purple);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--ax-blue);
+    }
+  }
+}
+
+.lf-footer {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 11px;
+  color: rgba(136, 146, 164, 0.6);
+}
+
+// ─── Responsive ───
+@media (max-width: 900px) {
+  .login-screen {
+    flex-direction: column;
+  }
+
+  .login-left {
+    padding: 40px 20px;
+    min-height: 300px;
+  }
+
+  .login-right {
+    width: 100%;
+    padding: 40px 24px;
+  }
+
+  .ll-illustration {
+    width: 280px;
+    height: 250px;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
 }

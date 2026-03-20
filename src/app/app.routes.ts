@@ -1,11 +1,27 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { authGuard, guestGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
+	// ── Auth pages (no sidebar/navbar, only for guests) ──
+	{
+		path: 'login',
+		canActivate: [guestGuard],
+		loadComponent: () => import('./features/auth/login/login.page').then(m => m.LoginPage)
+	},
+	{
+		path: 'signup',
+		canActivate: [guestGuard],
+		loadComponent: () => import('./features/auth/signup/signup.page').then(m => m.SignupPage)
+	},
+
+	// ── Authenticated app (sidebar + navbar layout) ──
 	{
 		path: '',
 		component: MainLayoutComponent,
+		canActivate: [authGuard],
 		children: [
+			{ path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 			{
 				path: 'dashboard',
 				loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage)
@@ -40,13 +56,7 @@ export const routes: Routes = [
 			}
 		]
 	},
-	{
-		path: 'login',
-		loadComponent: () => import('./features/auth/login/login.page').then(m => m.LoginPage)
-	},
-	{
-		path: 'signup',
-		loadComponent: () => import('./features/auth/signup/signup.page').then(m => m.SignupPage)
-	},
-	{ path: '**', redirectTo: 'dashboard' }
+
+	// ── Fallback ──
+	{ path: '**', redirectTo: 'login' }
 ];

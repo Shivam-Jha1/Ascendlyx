@@ -1,12 +1,2 @@
-.home-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  
-  h1 {
-    font-size: 3rem;
-    font-weight: 600;
-    color: #333;
-  }
-}
+// App root — no special styles needed.
+// The router-outlet renders full-page layouts.

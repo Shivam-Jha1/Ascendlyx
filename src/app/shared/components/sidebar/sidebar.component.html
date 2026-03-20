@@ -1,3 +1,51 @@
-<aside>
-  <!-- Sidebar placeholder -->
+<aside class="sidebar">
+  <!-- Logo -->
+  <div class="sidebar-logo">Ascendlyx</div>
+
+  <!-- Main Nav -->
+  <div class="sidebar-section-label">MAIN</div>
+  @for (item of mainNav; track item.route) {
+    <a class="sidebar-item" [routerLink]="item.route" routerLinkActive="active">
+      <i class="bi" [class]="item.icon"></i>
+      <span>{{ item.label }}</span>
+    </a>
+  }
+
+  <!-- Social Nav -->
+  <div class="sidebar-section-label">SOCIAL</div>
+  @for (item of socialNav; track item.route) {
+    <a class="sidebar-item" [routerLink]="item.route" routerLinkActive="active">
+      <i class="bi" [class]="item.icon"></i>
+      <span>{{ item.label }}</span>
+      @if (item.badge) {
+        <span class="sidebar-badge">{{ item.badge }}</span>
+      }
+      @if (item.locked) {
+        <i class="bi bi-lock sidebar-lock"></i>
+      }
+    </a>
+  }
+
+  <!-- Account Nav -->
+  <div class="sidebar-section-label">ACCOUNT</div>
+  @for (item of accountNav; track item.route) {
+    <a class="sidebar-item" [routerLink]="item.route" routerLinkActive="active">
+      <i class="bi" [class]="item.icon"></i>
+      <span>{{ item.label }}</span>
+    </a>
+  }
+
+  <!-- Footer Profile -->
+  <div class="sidebar-footer">
+    <div class="sidebar-profile" [routerLink]="'/profile'">
+      <div class="sidebar-avatar">{{ userInitial }}</div>
+      <div class="sidebar-profile-info">
+        <div class="sidebar-profile-name">{{ currentUser?.name || 'User' }}</div>
+        <div class="sidebar-profile-handle">{{ currentUser?.email || '' }}</div>
+      </div>
+    </div>
+    <button class="sidebar-logout" (click)="logout()">
+      <i class="bi bi-box-arrow-left"></i>
+    </button>
+  </div>
 </aside>

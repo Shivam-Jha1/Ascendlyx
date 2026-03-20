@@ -1,1 +1,533 @@
-/* You can add global styles to this file, and also import other style files */
+// ─── Bootstrap Core ───
+@use 'bootstrap/scss/bootstrap';
+
+// ─── Bootstrap Icons ───
+@use 'bootstrap-icons/font/bootstrap-icons.css';
+
+// ══════════════════════════════════════════
+//  ASCENDLYX — Design System & Global Styles
+// ══════════════════════════════════════════
+
+// ─── CSS Custom Properties (Design Tokens) ───
+:root {
+  // Brand colors
+  --ax-purple: #6C63FF;
+  --ax-blue: #00C2FF;
+  --ax-green: #22C55E;
+  --ax-orange: #FFA500;
+  --ax-red: #EF4444;
+
+  // Backgrounds
+  --ax-dark-bg: #0F172A;
+  --ax-card-bg: #111827;
+  --ax-card-bg-2: #1a2236;
+
+  // Text
+  --ax-text-light: #E5E7EB;
+  --ax-text-muted: #8892A4;
+
+  // Borders
+  --ax-border: rgba(108, 99, 255, 0.15);
+
+  // Gradients & effects
+  --ax-grad: linear-gradient(135deg, #6C63FF, #00C2FF);
+  --ax-grad-glow: 0 0 30px rgba(108, 99, 255, 0.35);
+  --ax-radius: 16px;
+
+  // Typography
+  --ax-font-head: 'Syne', sans-serif;
+  --ax-font-body: 'DM Sans', sans-serif;
+
+  // Layout
+  --ax-sidebar-width: 240px;
+  --ax-navbar-height: 60px;
+}
+
+// ─── Base Reset & Body ───
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--ax-font-body);
+  background: var(--ax-dark-bg);
+  color: var(--ax-text-light);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ─── Scrollbar ───
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+// ═══════════════════════════════════════
+//  UTILITY CLASSES
+// ═══════════════════════════════════════
+
+// ─── Gradient text ───
+.grad-text {
+  background: var(--ax-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ─── Gradient button (primary CTA) ───
+.btn-grad {
+  background: var(--ax-grad);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-family: var(--ax-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+  width: 100%;
+  letter-spacing: 0.3px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(108, 99, 255, 0.55);
+    color: #fff;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ─── Ghost button (secondary) ───
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ax-text-light);
+  border: 1px solid var(--ax-border);
+  border-radius: 12px;
+  padding: 13px 28px;
+  font-family: var(--ax-font-body);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(108, 99, 255, 0.4);
+    color: var(--ax-text-light);
+  }
+}
+
+// ─── Glass card with backdrop blur ───
+.glass {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+}
+
+// ─── Standard card ───
+.ax-card {
+  background: var(--ax-card-bg);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  padding: 24px;
+}
+
+// ─── Section headers ───
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sec-title {
+  font-family: var(--ax-font-head);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.see-all {
+  font-size: 13px;
+  color: var(--ax-purple);
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    color: var(--ax-blue);
+  }
+}
+
+// ─── Page header ───
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-title {
+  font-family: var(--ax-font-head);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.page-sub {
+  color: var(--ax-text-muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+// ─── Page content wrapper ───
+.page-content {
+  padding: 32px 36px;
+  max-width: 1100px;
+}
+
+// ═══════════════════════════════════════
+//  FORM OVERRIDES (dark theme)
+// ═══════════════════════════════════════
+.form-control,
+.form-select {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 13px 16px;
+  color: var(--ax-text-light);
+  font-family: var(--ax-font-body);
+  font-size: 14px;
+  transition: border-color 0.2s;
+
+  &:focus {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--ax-purple);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+    color: var(--ax-text-light);
+  }
+
+  &::placeholder {
+    color: var(--ax-text-muted);
+  }
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ax-text-muted);
+  margin-bottom: 7px;
+}
+
+// ─── Divider "or" ───
+.divider-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--ax-text-muted);
+  font-size: 12px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+// ═══════════════════════════════════════
+//  PROGRESS BARS
+// ═══════════════════════════════════════
+.ax-progress {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ax-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ax-grad);
+  transition: width 0.4s ease;
+}
+
+// ═══════════════════════════════════════
+//  CHART CARD (reusable widget container)
+// ═══════════════════════════════════════
+.chart-card {
+  background: var(--ax-card-bg);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  padding: 24px;
+}
+
+.cc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cc-title {
+  font-family: var(--ax-font-head);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.cc-period {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ax-border);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--ax-text-muted);
+  cursor: pointer;
+}
+
+// ═══════════════════════════════════════
+//  TAGS / BADGES
+// ═══════════════════════════════════════
+.ax-tag {
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-weight: 500;
+
+  &.tag-blue {
+    background: rgba(0, 194, 255, 0.1);
+    color: var(--ax-blue);
+    border: 1px solid rgba(0, 194, 255, 0.2);
+  }
+  &.tag-purple {
+    background: rgba(108, 99, 255, 0.1);
+    color: var(--ax-purple);
+    border: 1px solid rgba(108, 99, 255, 0.2);
+  }
+  &.tag-green {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--ax-green);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  &.tag-orange {
+    background: rgba(255, 160, 0, 0.1);
+    color: var(--ax-orange);
+    border: 1px solid rgba(255, 160, 0, 0.2);
+  }
+  &.tag-red {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--ax-red);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+}
+
+// ═══════════════════════════════════════
+//  GLOW ACCENTS
+// ═══════════════════════════════════════
+.glow-green {
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.25) !important;
+}
+.glow-purple {
+  box-shadow: 0 0 25px rgba(108, 99, 255, 0.15);
+  border-color: rgba(108, 99, 255, 0.25) !important;
+}
+
+// ═══════════════════════════════════════
+//  ADD / ACTION BUTTONS
+// ═══════════════════════════════════════
+.btn-add {
+  background: var(--ax-grad);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 4px 15px rgba(108, 99, 255, 0.35);
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 99, 255, 0.5);
+    color: #fff;
+  }
+}
+
+// ═══════════════════════════════════════
+//  AI WIDGET
+// ═══════════════════════════════════════
+.ai-widget {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(0, 194, 255, 0.05));
+  border: 1px solid rgba(108, 99, 255, 0.25);
+  border-radius: var(--ax-radius);
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(108, 99, 255, 0.2), transparent);
+  }
+}
+
+.ai-w-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ax-purple);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--ax-purple);
+  border-radius: 50%;
+  animation: ax-pulse 1.5s infinite;
+}
+
+@keyframes ax-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+.ai-w-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ax-text-light);
+}
+
+// ═══════════════════════════════════════
+//  FAB (Floating Action Button)
+// ═══════════════════════════════════════
+.fab {
+  position: fixed;
+  bottom: 36px;
+  right: 36px;
+  width: 56px;
+  height: 56px;
+  background: var(--ax-grad);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(108, 99, 255, 0.5);
+  z-index: 200;
+  transition: all 0.2s;
+  color: #fff;
+  border: none;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// ═══════════════════════════════════════
+//  MODAL OVERRIDES
+// ═══════════════════════════════════════
+.modal-content {
+  background: var(--ax-card-bg);
+  border: 1px solid var(--ax-border);
+  border-radius: 20px;
+  color: var(--ax-text-light);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--ax-border);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--ax-border);
+}
+
+.modal-title {
+  font-family: var(--ax-font-head);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.modal-backdrop.show {
+  backdrop-filter: blur(6px);
+}
+
+// ═══════════════════════════════════════
+//  EMPTY STATE
+// ═══════════════════════════════════════
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--ax-text-muted);
+  font-size: 14px;
+}
+
+// ═══════════════════════════════════════
+//  ANIMATIONS
+// ═══════════════════════════════════════
+@keyframes ax-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(108, 99, 255, 0.4); }
+  50% { box-shadow: 0 0 35px rgba(108, 99, 255, 0.7); }
+}
+
+@keyframes ax-flicker {
+  0% { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 20px rgba(255, 160, 0, 0.8)); }
+  100% { transform: scale(1.1) rotate(3deg); filter: drop-shadow(0 0 40px rgba(255, 100, 0, 0.9)); }
+}
+
+// ═══════════════════════════════════════
+//  BOOTSTRAP OVERRIDES — DARK THEME
+// ═══════════════════════════════════════
+.btn-close {
+  filter: invert(1);
+}
+
+a {
+  color: var(--ax-purple);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ax-blue);
+  }
+}
