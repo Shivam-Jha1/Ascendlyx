@@ -1,25 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { AuthService } from './core/services/auth.service';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
-  protected readonly title = 'frontend';
-  private authService = inject(AuthService);
-  private router = inject(Router);
-
-  protected isAuthenticated = this.authService.isAuthenticated;
-
-  constructor() {
-    // If user is not authenticated, redirect to login
-    if (!this.isAuthenticated()) {
-      this.router.navigate(['/login']);
-    }
-  }
-}
+export class App {}

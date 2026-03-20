@@ -1,3 +1,33 @@
-<nav>
-  <!-- Navbar placeholder -->
+<nav class="top-navbar">
+  <!-- Search -->
+  <div class="navbar-search">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text" class="form-control" placeholder="Search habits, goals, friends...">
+  </div>
+
+  <!-- Right actions -->
+  <div class="navbar-right">
+    <!-- Streak pill -->
+    <div class="streak-pill">
+      <i class="bi bi-fire"></i>
+      {{ streakDays }} Days
+    </div>
+
+    <!-- Notifications -->
+    <button class="notif-btn" type="button">
+      <i class="bi bi-bell"></i>
+      @if (hasNotifications) {
+        <span class="notif-dot"></span>
+      }
+    </button>
+
+    <!-- AI Coach -->
+    <button class="ai-coach-btn" type="button" (click)="openAiCoach()">
+      <i class="bi bi-stars"></i>
+      AI Coach
+    </button>
+
+    <!-- User avatar -->
+    <div class="navbar-avatar">{{ userInitial }}</div>
+  </div>
 </nav>
