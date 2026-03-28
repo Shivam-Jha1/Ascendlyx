@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://api.ascendlyx.com/api',
+  apiBaseUrl: 'https://api.ascendlyx.com/api/v1',
   apiTimeout: 30000,
   logLevel: 'error',
   authTokenKey: 'authToken',
