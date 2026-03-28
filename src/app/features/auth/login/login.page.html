@@ -55,6 +55,12 @@
       <h1 class="lf-title">Welcome back 👋</h1>
       <p class="lf-sub">Sign in to continue your streak</p>
 
+      @if (successMessage) {
+        <div class="alert alert-success py-2 px-3" style="font-size: 13px; border-radius: 10px;">
+          {{ successMessage }}
+        </div>
+      }
+
       @if (errorMessage) {
         <div class="alert alert-danger py-2 px-3" style="font-size: 13px; border-radius: 10px;">
           {{ errorMessage }}
@@ -87,7 +93,7 @@
         </div>
 
         <div class="text-end mb-3">
-          <a class="forgot-link">Forgot password?</a>
+          <a class="forgot-link" routerLink="/forgot-password">Forgot password?</a>
         </div>
 
         <button type="submit" class="btn-grad" [disabled]="isLoading">

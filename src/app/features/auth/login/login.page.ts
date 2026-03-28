@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -10,17 +11,28 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss']
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   email = '';
   password = '';
   errorMessage = '';
+  successMessage = '';
   isLoading = false;
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['reset'] === 'success') {
+        this.successMessage = 'Password reset successfully. Please sign in with your new password.';
+      }
+    });
+  }
 
   onSubmit(): void {
     this.errorMessage = '';
+    this.successMessage = '';
 
     if (!this.email || !this.password) {
       this.errorMessage = 'Please fill in all fields.';
@@ -29,23 +41,20 @@ export class LoginPage {
 
     this.isLoading = true;
 
-    // Mock login — replace with real API call later
-    setTimeout(() => {
-      const mockUser = {
-        id: '1',
-        name: 'Alex Johnson',
-        email: this.email,
-        handle: '@alexj',
-        avatar: null
-      };
-      this.authService.login('mock-jwt-token-' + Date.now(), mockUser);
-      this.isLoading = false;
-      this.router.navigate(['/dashboard']);
-    }, 600);
+    this.authService.login({ email: this.email, password: this.password }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isLoading = false;
+        this.errorMessage =
+          err.error?.detail || err.error?.message || 'Invalid email or password.';
+      }
+    });
   }
 
   loginWithGoogle(): void {
-    // Placeholder for Google OAuth
     this.errorMessage = 'Google sign-in coming soon.';
   }
 }

@@ -14,6 +14,11 @@ export const routes: Routes = [
 		canActivate: [guestGuard],
 		loadComponent: () => import('./features/auth/signup/signup.page').then(m => m.SignupPage)
 	},
+	{
+		path: 'forgot-password',
+		canActivate: [guestGuard],
+		loadComponent: () => import('./features/auth/forgot-password/forgot-password.page').then(m => m.ForgotPasswordPage)
+	},
 
 	// ── Authenticated app (sidebar + navbar layout) ──
 	{
