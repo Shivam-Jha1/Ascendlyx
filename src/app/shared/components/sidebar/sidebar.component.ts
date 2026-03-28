@@ -44,6 +44,8 @@ export class SidebarComponent {
   logout(): void {
     this.authService.logout().pipe(
       finalize(() => this.router.navigate(['/login']))
-    ).subscribe({ error: () => {} });
+    ).subscribe({
+      error: (err) => console.error('Logout request failed:', err)
+    });
   }
 }

@@ -26,7 +26,7 @@ Angular 20 application for the Ascendlyx habit-tracking and peak-performance pla
 - Shows password-reset success banner when redirected from forgot-password
 
 #### Signup — 2-step OTP (`POST /auth/signup` → `POST /auth/signup/verify`)
-- **Step 1:** Collects `first_name`, `last_name`, `email`, `password`, `confirmPassword` → calls `/auth/signup`
+- **Step 1:** Collects `first_name`, `last_name`, `email`, `password` (with local `confirmPassword` validation; not sent to API) → calls `/auth/signup`
 - **Step 2:** On success, transitions to OTP screen; user enters 6-digit code → calls `/auth/signup/verify`
 - On verification success: tokens stored, navigates to `/dashboard`
 - Handles `429 Too Many Requests` OTP rate-limit
@@ -38,7 +38,7 @@ Angular 20 application for the Ascendlyx habit-tracking and peak-performance pla
 
 #### HTTP Interceptor (`authInterceptor`)
 - Attaches `Authorization: Bearer <access_token>` to every outgoing request
-- On `401` (excluding `/auth/refresh` itself): silently calls `POST /auth/refresh` and retries the original request
+- On `401` for non-auth endpoints (URLs not containing `/auth/`): silently calls `POST /auth/refresh` and retries the original request
 - If refresh fails: clears local session and redirects to `/login`
 
 #### Route guards
@@ -82,7 +82,7 @@ ng test
 ```
 src/app/
   core/
-    guards/         auth.guard.ts, guest.guard.ts
+    guards/         auth.guard.ts  (authGuard, guestGuard)
     interceptors/   auth.interceptor.ts
     services/       auth.service.ts
   features/

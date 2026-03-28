@@ -97,6 +97,14 @@ export class SignupPage {
     });
   }
 
+  goBackToForm(): void {
+    this.step = 'form';
+    this.otp = '';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.isLoading = false;
+  }
+
   signupWithGoogle(): void {
     this.errorMessage = 'Google sign-up coming soon.';
   }

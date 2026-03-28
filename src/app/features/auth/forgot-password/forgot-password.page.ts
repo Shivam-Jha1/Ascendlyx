@@ -99,4 +99,14 @@ export class ForgotPasswordPage {
       }
     });
   }
+
+  goBackToEmail(): void {
+    this.step = 'email';
+    this.otp = '';
+    this.newPassword = '';
+    this.confirmNewPassword = '';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.isLoading = false;
+  }
 }
