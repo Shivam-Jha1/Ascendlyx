@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -41,9 +42,8 @@ export class SidebarComponent {
   }
 
   logout(): void {
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login'])
-    });
+    this.authService.logout().pipe(
+      finalize(() => this.router.navigate(['/login']))
+    ).subscribe({ error: () => {} });
   }
 }

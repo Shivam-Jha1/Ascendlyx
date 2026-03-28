@@ -62,6 +62,10 @@ export class AuthService {
   /** Silently refresh access token using the stored refresh token */
   refreshToken(): Observable<AuthTokens> {
     const refresh_token = this.getRefreshToken();
+    if (!refresh_token) {
+      this.clearSession();
+      return throwError(() => new Error('No refresh token available'));
+    }
     return this.http
       .post<AuthTokens>(`${this.apiUrl}/refresh`, { refresh_token })
       .pipe(tap(tokens => this.storeTokens(tokens)));
@@ -121,7 +125,14 @@ export class AuthService {
 
   private decodeJwt(token: string): any | null {
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      const payloadPart = token.split('.')[1];
+      if (!payloadPart) return null;
+      // JWT uses base64url encoding — convert to standard base64 before atob
+      const base64 = payloadPart
+        .replace(/-/g, '+')
+        .replace(/_/g, '/')
+        .padEnd(payloadPart.length + ((4 - (payloadPart.length % 4)) % 4), '=');
+      return JSON.parse(atob(base64));
     } catch {
       return null;
     }
