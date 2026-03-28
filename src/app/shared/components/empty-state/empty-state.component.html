@@ -1,3 +1,9 @@
 <div class="empty-state">
-  <!-- Empty State placeholder -->
+  @if (icon()) {
+    <div class="empty-icon">{{ icon() }}</div>
+  }
+  <p class="empty-msg">{{ message() }}</p>
+  @if (actionLabel()) {
+    <button type="button" class="btn-grad empty-action" (click)="action.emit()">{{ actionLabel() }}</button>
+  }
 </div>
