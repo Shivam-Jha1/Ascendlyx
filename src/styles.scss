@@ -280,6 +280,67 @@ body {
 }
 
 // ═══════════════════════════════════════
+//  STAT CARDS
+// ═══════════════════════════════════════
+.stat-card {
+  background: var(--ax-card-bg);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--ax-purple);
+    border-radius: var(--ax-radius) var(--ax-radius) 0 0;
+  }
+
+  &.green::before { background: var(--ax-green); }
+  &.purple::before { background: var(--ax-purple); }
+  &.blue::before { background: var(--ax-blue); }
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.stat-value {
+  font-family: var(--ax-font-head);
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  color: var(--ax-text-muted);
+  font-size: 13px;
+}
+
+.stat-badge {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--ax-green);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+// ═══════════════════════════════════════
 //  CHART CARD (reusable widget container)
 // ═══════════════════════════════════════
 .chart-card {

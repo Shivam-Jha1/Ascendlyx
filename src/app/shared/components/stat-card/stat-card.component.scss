@@ -1,6 +1,5 @@
-.stat-card {
-  border: 1px solid #ddd;
-  padding: 1rem;
-  border-radius: 8px;
-  background: #fff;
+// Stat card styles live in global styles.scss (stat-card, stat-icon, stat-value, etc.)
+// This file only adds component-scoped overrides if needed.
+:host {
+  display: block;
 }

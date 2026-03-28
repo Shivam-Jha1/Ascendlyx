@@ -1,5 +1,24 @@
 .empty-state {
   text-align: center;
-  color: #888;
-  padding: 2rem;
+  padding: 48px 20px;
+  color: var(--ax-text-muted, #8892A4);
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.empty-msg {
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.empty-action {
+  max-width: 200px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  font-size: 13px;
 }
