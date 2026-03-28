@@ -115,7 +115,7 @@
     <div class="chart-card goals-card">
       <div class="cc-header">
         <div class="cc-title">Goal Progress</div>
-        <span class="see-all" (click)="navigateToGoals()">View All</span>
+        <button type="button" class="see-all" (click)="navigateToGoals()">View All</button>
       </div>
       @for (goal of topGoals(); track goal.id; let i = $index) {
         <div class="goal-item">
@@ -146,10 +146,10 @@
 
   <!-- AI Coach Insight Widget -->
   @if (aiScore()) {
-    <div class="ai-widget" (click)="navigateToAiInsights()">
+    <button type="button" class="ai-widget" (click)="navigateToAiInsights()">
       <div class="ai-w-title"><span class="ai-dot"></span> AI Coach Insight</div>
       <div class="ai-w-text" [innerHTML]="aiInsightText()"></div>
-    </div>
+    </button>
   }
 
   <!-- FAB -->
@@ -164,7 +164,7 @@
     <div class="modal-box" (click)="$event.stopPropagation()">
       <div class="modal-header-row">
         <h3 class="modal-title">Add New Habit ✨</h3>
-        <button class="modal-close" type="button" (click)="closeAddHabit()">&times;</button>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeAddHabit()">&times;</button>
       </div>
 
       <!-- Error -->

@@ -4,6 +4,6 @@
   }
   <p class="empty-msg">{{ message() }}</p>
   @if (actionLabel()) {
-    <button class="btn-grad empty-action" (click)="action.emit()">{{ actionLabel() }}</button>
+    <button type="button" class="btn-grad empty-action" (click)="action.emit()">{{ actionLabel() }}</button>
   }
 </div>

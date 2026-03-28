@@ -102,10 +102,12 @@ export class DashboardPage implements OnInit {
     const data = this.dashboard();
     if (!data?.weekly_summary?.days) return [];
     const days = data.weekly_summary.days;
-    const totalHabits = this.totalHabits() || 1;
+    const totalHabits = this.totalHabits();
     const todayStr = new Date().toISOString().slice(0, 10);
     return days.map(day => {
-      const pct = Math.min(100, Math.round((day.habits_completed / totalHabits) * 100));
+      const pct = totalHabits === 0
+        ? 0
+        : Math.min(100, Math.round((day.habits_completed / totalHabits) * 100));
       const date = new Date(day.date + 'T00:00:00');
       const dayLabel = DAY_LABELS[date.getDay()];
       const isToday = day.date === todayStr;

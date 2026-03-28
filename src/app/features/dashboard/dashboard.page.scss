@@ -225,24 +225,6 @@
   padding: 60px 0;
 }
 
-// Stat value colors (scoped component overrides)
-:host ::ng-deep {
-  .stat-value.green {
-    color: var(--ax-green);
-  }
-
-  .stat-value.grad {
-    background: var(--ax-grad);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .stat-value.blue {
-    color: var(--ax-blue);
-  }
-}
-
 // Responsive
 @media (max-width: 900px) {
   .dashboard-grid {

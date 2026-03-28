@@ -321,6 +321,17 @@ body {
   font-size: 32px;
   font-weight: 800;
   margin-bottom: 4px;
+
+  &.green { color: var(--ax-green); }
+
+  &.blue { color: var(--ax-blue); }
+
+  &.grad {
+    background: var(--ax-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
 .stat-label {
@@ -450,12 +461,23 @@ body {
 //  AI WIDGET
 // ═══════════════════════════════════════
 .ai-widget {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
   background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(0, 194, 255, 0.05));
   border: 1px solid rgba(108, 99, 255, 0.25);
   border-radius: var(--ax-radius);
   padding: 22px;
   position: relative;
   overflow: hidden;
+  color: inherit;
+  font-family: var(--ax-font-body);
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: rgba(108, 99, 255, 0.45);
+  }
 
   &::before {
     content: '';
