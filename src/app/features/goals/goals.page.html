@@ -1,4 +1,282 @@
-<div class="goals-page">
-  <h2>Goals</h2>
-  <!-- Goals content placeholder -->
-</div>
+<!-- Loading -->
+@if (loading()) {
+  <app-loader message="Loading your goals..." />
+}
+
+<!-- Error -->
+@if (error(); as errorMsg) {
+  <app-empty-state icon="⚠️" [message]="errorMsg" actionLabel="Retry" (action)="loadGoals()" />
+}
+
+<!-- Content -->
+@if (!loading() && !error()) {
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">My Goals <span class="emoji">🎯</span></h1>
+      <p class="page-sub">Set ambitious goals and track every milestone</p>
+    </div>
+    <div class="page-header-right">
+      <button class="btn-filter" [class.active]="!includeCompleted()" (click)="toggleFilter()">
+        <i class="bi bi-funnel"></i>
+        {{ includeCompleted() ? 'All Goals' : 'Active Only' }}
+      </button>
+      <button class="btn-add" (click)="openAddModal()">
+        <i class="bi bi-plus-lg"></i> Add Goal
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  @if (allGoals().length === 0) {
+    <app-empty-state
+      icon="🎯"
+      message="No goals yet. Set your first ambitious goal!"
+      actionLabel="+ Add Goal"
+      (action)="openAddModal()"
+    />
+  }
+
+  <!-- Goals Grid -->
+  @if (allGoals().length > 0) {
+    <div class="goals-grid">
+      @for (goal of allGoals(); track goal.id) {
+        <div class="goal-card" [class.completed]="goal.is_completed">
+
+          <!-- Card Header -->
+          <div class="goal-card-header">
+            <span class="priority-badge" [ngClass]="priorityClass(goal.priority)">
+              {{ priorityLabel(goal.priority) }}
+            </span>
+            <div class="goal-header-right">
+              @if (goal.deadline) {
+                <span class="goal-deadline">
+                  <i class="bi bi-calendar3"></i>
+                  {{ goal.deadline | date:'MMM d, y' }}
+                </span>
+              }
+              <!-- Delete -->
+              <button class="btn-icon-danger" title="Delete goal" (click)="deleteGoal(goal.id)">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Title & Description -->
+          <h3 class="goal-title">{{ goal.title }}</h3>
+          @if (goal.description) {
+            <p class="goal-desc">{{ goal.description }}</p>
+          }
+
+          <!-- Progress Section -->
+          <div class="goal-progress-section">
+            <div class="goal-progress-label">
+              <span>Progress</span>
+              <span class="goal-progress-pct">
+                {{ goal.progress_percentage | number:'1.0-0' }}%
+                @if (goal.total_milestones > 0) {
+                  <span class="milestone-count"> · {{ goal.completed_milestones }}/{{ goal.total_milestones }}</span>
+                }
+                @if (goal.target_value) {
+                  <span class="target-count"> · {{ goal.current_value }}/{{ goal.target_value }}{{ goal.unit ? ' ' + goal.unit : '' }}</span>
+                }
+              </span>
+            </div>
+            <div class="ax-progress">
+              <div
+                class="ax-progress-fill"
+                [ngClass]="progressBarClass(goal)"
+                [style.width.%]="goal.progress_percentage"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Milestones -->
+          @if (goal.milestones.length > 0) {
+            <div class="goal-milestones">
+              @for (m of goal.milestones; track m.id) {
+                <div class="milestone-row" [class.done]="m.is_completed">
+                  <button
+                    class="milestone-check"
+                    [class.checked]="m.is_completed"
+                    [disabled]="toggleLoading() === m.id"
+                    [attr.aria-label]="m.is_completed ? 'Uncheck: ' + m.label : 'Check: ' + m.label"
+                    (click)="toggleMilestone(goal, m.id)"
+                  >
+                    @if (toggleLoading() === m.id) {
+                      <i class="bi bi-arrow-repeat spin"></i>
+                    } @else if (m.is_completed) {
+                      <i class="bi bi-check"></i>
+                    }
+                  </button>
+                  <span class="milestone-label">{{ m.label }}</span>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Numeric Progress Button -->
+          @if (goal.target_value && !goal.is_completed) {
+            <button class="btn-log-progress" (click)="openProgressModal(goal)">
+              <i class="bi bi-plus-circle"></i> Log Progress
+            </button>
+          }
+
+          <!-- Completed badge -->
+          @if (goal.is_completed) {
+            <div class="completed-badge">
+              <i class="bi bi-check-circle-fill"></i> Completed
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- ═══ Add Goal Modal ═══ -->
+@if (showAddModal()) {
+  <div class="modal-overlay" (click)="closeAddModal()">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="addGoalTitle" (click)="$event.stopPropagation()">
+      <div class="modal-header-row">
+        <h3 id="addGoalTitle" class="modal-title">Add New Goal 🎯</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeAddModal()">&times;</button>
+      </div>
+
+      @if (formError(); as err) {
+        <div class="form-error">{{ err }}</div>
+      }
+
+      <!-- Title -->
+      <div class="form-group">
+        <label for="goalTitle">Goal Title <span class="required">*</span></label>
+        <input id="goalTitle" type="text" class="form-control"
+          placeholder="e.g. Run a marathon, Read 12 books..."
+          [(ngModel)]="goalForm.title" maxlength="200">
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="goalDesc">Description</label>
+        <textarea id="goalDesc" class="form-control" rows="2"
+          placeholder="Optional details about your goal..."
+          [(ngModel)]="goalForm.description" maxlength="500"></textarea>
+      </div>
+
+      <!-- Priority & Category -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="goalPriority">Priority</label>
+          <select id="goalPriority" class="form-control" [(ngModel)]="goalForm.priority">
+            @for (p of priorities; track p) {
+              <option [value]="p">{{ p | titlecase }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group flex-1">
+          <label for="goalCategory">Category</label>
+          <select id="goalCategory" class="form-control" [(ngModel)]="goalForm.category">
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ cat | titlecase }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Deadline -->
+      <div class="form-group">
+        <label for="goalDeadline">Deadline</label>
+        <input id="goalDeadline" type="date" class="form-control" [(ngModel)]="goalForm.deadline">
+      </div>
+
+      <!-- Target Value & Unit -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="goalTarget">Target Value <span class="hint">(numeric goals)</span></label>
+          <input id="goalTarget" type="number" class="form-control"
+            placeholder="e.g. 100, 12, 50..." [(ngModel)]="goalForm.target_value" min="0">
+        </div>
+        <div class="form-group flex-1">
+          <label for="goalUnit">Unit</label>
+          <input id="goalUnit" type="text" class="form-control"
+            placeholder="km, books, hours..." [(ngModel)]="goalForm.unit" maxlength="30">
+        </div>
+      </div>
+
+      <!-- Milestones -->
+      <div class="form-group">
+        <label>Milestones <span class="hint">(optional steps)</span></label>
+        <div class="milestone-input-row">
+          <input type="text" class="form-control"
+            placeholder="Add a milestone step..."
+            [(ngModel)]="newMilestoneLabel"
+            (keydown)="onMilestoneLabelKeydown($event)"
+            maxlength="200">
+          <button type="button" class="btn-add-milestone" (click)="addMilestoneToForm()">
+            <i class="bi bi-plus"></i>
+          </button>
+        </div>
+        @if (goalForm.milestones.length > 0) {
+          <div class="milestones-preview">
+            @for (m of goalForm.milestones; track m; let i = $index) {
+              <div class="milestone-chip">
+                <span>{{ m }}</span>
+                <button type="button" class="milestone-chip-remove" (click)="removeMilestoneFromForm(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" (click)="closeAddModal()">Cancel</button>
+        <button type="button" class="btn-grad" [disabled]="formLoading()" (click)="submitGoal()">
+          @if (formLoading()) { Saving... } @else { Create Goal }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Log Progress Modal ═══ -->
+@if (showProgressModal() && progressGoal(); as goal) {
+  <div class="modal-overlay" (click)="closeProgressModal()">
+    <div class="modal-box modal-sm" role="dialog" aria-modal="true" aria-labelledby="progressModalTitle" (click)="$event.stopPropagation()">
+      <div class="modal-header-row">
+        <h3 id="progressModalTitle" class="modal-title">Log Progress 📈</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeProgressModal()">&times;</button>
+      </div>
+
+      <p class="modal-goal-name">{{ goal.title }}</p>
+      <p class="modal-goal-meta">Current: {{ goal.current_value }} / {{ goal.target_value }}{{ goal.unit ? ' ' + goal.unit : '' }}</p>
+
+      @if (progressError(); as err) {
+        <div class="form-error">{{ err }}</div>
+      }
+
+      <div class="form-group">
+        <label for="progressDelta">Amount to add{{ goal.unit ? ' (' + goal.unit + ')' : '' }}</label>
+        <input id="progressDelta" type="number" class="form-control"
+          placeholder="e.g. 5, -2..."
+          [(ngModel)]="progressDelta">
+      </div>
+
+      <div class="form-group">
+        <label for="progressNote">Note <span class="hint">(optional)</span></label>
+        <input id="progressNote" type="text" class="form-control"
+          placeholder="e.g. Morning run, session 3..."
+          [(ngModel)]="progressNote" maxlength="200">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" (click)="closeProgressModal()">Cancel</button>
+        <button type="button" class="btn-grad" [disabled]="progressLoading()" (click)="submitProgress()">
+          @if (progressLoading()) { Saving... } @else { Log Progress }
+        </button>
+      </div>
+    </div>
+  </div>
+}
