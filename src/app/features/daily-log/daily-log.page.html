@@ -1,4 +1,214 @@
-<div class="daily-log-page">
-  <h2>Daily Log</h2>
-  <!-- Daily log content placeholder -->
-</div>
+<!-- Loading -->
+@if (loading()) {
+  <app-loader message="Loading your habits..." />
+}
+
+<!-- Error -->
+@if (error(); as errorMsg) {
+  <div class="daily-log-error">
+    <app-empty-state icon="⚠️" [message]="errorMsg" actionLabel="Retry" (action)="loadData()" />
+  </div>
+}
+
+<!-- Content -->
+@if (!loading() && !error() && dashboard(); as data) {
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">My Habits <span class="emoji">🔥</span></h1>
+    <p class="page-sub">Track your daily habits and build lasting streaks</p>
+  </div>
+
+  <!-- Toolbar: Search + Add Habit -->
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Search habits..." (input)="onSearch($event)" [value]="searchQuery()">
+    </div>
+    <button class="btn-add" (click)="openAddHabit()">
+      <i class="bi bi-plus-lg"></i> Add Habit
+    </button>
+  </div>
+
+  <div class="daily-log-grid">
+    <!-- ═══ Left Column: Habit List ═══ -->
+    <div class="habits-column">
+      <div class="habits-header">
+        <span class="habits-today">Today — {{ dayName }}</span>
+        <span class="habits-done">{{ habitsCompletedToday() }}/{{ totalHabits() }} done</span>
+      </div>
+
+      @if (filteredHabits().length === 0) {
+        <app-empty-state
+          icon="📝"
+          [message]="searchQuery() ? 'No habits match your search' : 'No habits yet. Create your first habit!'"
+          [actionLabel]="searchQuery() ? '' : 'Add Habit'"
+          (action)="openAddHabit()"
+        />
+      } @else {
+        @for (habit of filteredHabits(); track habit.id) {
+          <div class="habit-card" [class.checked]="isCheckedInToday(habit)">
+            <!-- Checkbox -->
+            <button
+              class="habit-check"
+              [class.done]="isCheckedInToday(habit)"
+              [attr.aria-label]="isCheckedInToday(habit) ? 'Completed: ' + habit.name : 'Check in: ' + habit.name"
+              [disabled]="isCheckedInToday(habit) || checkinLoading() === habit.id"
+              (click)="checkinHabit(habit)"
+            >
+              @if (checkinLoading() === habit.id) {
+                <i class="bi bi-arrow-repeat spin"></i>
+              } @else if (isCheckedInToday(habit)) {
+                <i class="bi bi-check-lg"></i>
+              }
+            </button>
+
+            <!-- Info -->
+            <div class="habit-info">
+              <div class="habit-name">{{ habit.name }}</div>
+              <div class="habit-meta">
+                <span class="habit-category" [attr.data-cat]="habit.category">{{ habit.category | titlecase }}</span>
+                <span class="habit-time">
+                  <i class="bi bi-alarm"></i> {{ formatTime(habit.reminder_time) }} · {{ habit.duration_minutes }} min
+                </span>
+              </div>
+            </div>
+
+            <!-- Streak -->
+            <div class="habit-streak">
+              <span class="streak-fire">🔥</span>
+              <span class="streak-count">{{ habit.streak.current_streak }}</span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- ═══ Right Column: Stats ═══ -->
+    <div class="stats-column">
+      <!-- Completion Rate -->
+      <div class="chart-card completion-card">
+        <div class="cc-title">Completion Rate</div>
+
+        <div class="completion-ring" [style.background]="
+          'conic-gradient(var(--ax-blue) ' + (todayCompletionPct() * 3.6) + 'deg, rgba(255,255,255,0.07) 0deg)'
+        ">
+          <div class="ring-inner">
+            <div class="ring-pct">{{ todayCompletionPct() }}%</div>
+            <div class="ring-label">Today</div>
+          </div>
+        </div>
+
+        <div class="completion-stats">
+          <div class="comp-row">
+            <span class="comp-label">Weekly avg</span>
+            <span class="comp-value">{{ weeklyAvg() }}%</span>
+          </div>
+          <div class="ax-progress">
+            <div class="ax-progress-fill" [style.width.%]="weeklyAvg()" style="background: var(--ax-blue)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak Heatmap -->
+      <div class="chart-card heatmap-card">
+        <div class="cc-title">This Week</div>
+        <div class="heatmap-sub">{{ today | date:'MMM d' }} week · 7 days</div>
+
+        <div class="heatmap-grid">
+          @for (cell of heatmapCells(); track cell.date) {
+            <div class="heatmap-col">
+              <div
+                class="heatmap-cell"
+                [class.level-0]="cell.level === 0"
+                [class.level-1]="cell.level === 1"
+                [class.level-2]="cell.level === 2"
+                [class.level-3]="cell.level === 3"
+                [title]="cell.date"
+              ></div>
+              <div class="heatmap-day-label">{{ cell.dayLabel }}</div>
+            </div>
+          }
+        </div>
+
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <div class="heatmap-cell level-0"></div>
+          <div class="heatmap-cell level-1"></div>
+          <div class="heatmap-cell level-2"></div>
+          <div class="heatmap-cell level-3"></div>
+          <span>More</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Add Habit Modal ═══ -->
+@if (showAddHabit()) {
+  <div class="modal-overlay" (click)="closeAddHabit()">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="addHabitModalTitle" (click)="$event.stopPropagation()">
+      <div class="modal-header-row">
+        <h3 id="addHabitModalTitle" class="modal-title">Add New Habit ✨</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeAddHabit()">&times;</button>
+      </div>
+
+      @if (habitError(); as err) {
+        <div class="habit-form-error">{{ err }}</div>
+      }
+
+      <!-- Name -->
+      <div class="form-group">
+        <label for="habitName">Habit Name</label>
+        <input id="habitName" type="text" class="form-control"
+          placeholder="e.g. Morning Run, Read 30 pages..." [(ngModel)]="habitForm.name" maxlength="100">
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label>Category</label>
+        <div class="category-chips">
+          @for (cat of categories; track cat) {
+            <button type="button" class="category-chip"
+              [class.selected]="habitForm.category === cat" (click)="selectCategory(cat)">
+              @if (cat === 'custom') { <span>+ Custom</span> } @else { {{ cat | titlecase }} }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Reminder & Duration -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="reminderTime">Reminder Time</label>
+          <input id="reminderTime" type="time" class="form-control" [(ngModel)]="habitForm.reminder_time">
+        </div>
+        <div class="form-group flex-1">
+          <label for="duration">Duration</label>
+          <div class="input-suffix">
+            <input id="duration" type="number" class="form-control"
+              [(ngModel)]="habitForm.duration_minutes" min="1" max="480" placeholder="30">
+            <span class="suffix">min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Target -->
+      <div class="form-group">
+        <label for="dailyTarget">Daily Target</label>
+        <div class="input-suffix">
+          <input id="dailyTarget" type="number" class="form-control"
+            [(ngModel)]="habitForm.daily_target" min="1" max="20" placeholder="1">
+          <span class="suffix">x per day</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" (click)="closeAddHabit()">Cancel</button>
+        <button type="button" class="btn-grad" [disabled]="savingHabit()" (click)="saveHabit()">
+          @if (savingHabit()) { Saving... } @else { Save Habit ✓ }
+        </button>
+      </div>
+    </div>
+  </div>
+}
