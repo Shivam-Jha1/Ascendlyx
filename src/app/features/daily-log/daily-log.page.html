@@ -51,6 +51,7 @@
             <button
               class="habit-check"
               [class.done]="isCheckedInToday(habit)"
+              [attr.aria-label]="isCheckedInToday(habit) ? 'Completed: ' + habit.name : 'Check in: ' + habit.name"
               [disabled]="isCheckedInToday(habit) || checkinLoading() === habit.id"
               (click)="checkinHabit(habit)"
             >
@@ -110,19 +111,22 @@
 
       <!-- Streak Heatmap -->
       <div class="chart-card heatmap-card">
-        <div class="cc-title">Streak Heatmap</div>
-        <div class="heatmap-sub">Last 84 days</div>
+        <div class="cc-title">This Week</div>
+        <div class="heatmap-sub">{{ today | date:'MMM d' }} week · 7 days</div>
 
         <div class="heatmap-grid">
           @for (cell of heatmapCells(); track cell.date) {
-            <div
-              class="heatmap-cell"
-              [class.level-0]="cell.level === 0"
-              [class.level-1]="cell.level === 1"
-              [class.level-2]="cell.level === 2"
-              [class.level-3]="cell.level === 3"
-              [title]="cell.date"
-            ></div>
+            <div class="heatmap-col">
+              <div
+                class="heatmap-cell"
+                [class.level-0]="cell.level === 0"
+                [class.level-1]="cell.level === 1"
+                [class.level-2]="cell.level === 2"
+                [class.level-3]="cell.level === 3"
+                [title]="cell.date"
+              ></div>
+              <div class="heatmap-day-label">{{ cell.dayLabel }}</div>
+            </div>
           }
         </div>
 
@@ -142,9 +146,9 @@
 <!-- ═══ Add Habit Modal ═══ -->
 @if (showAddHabit()) {
   <div class="modal-overlay" (click)="closeAddHabit()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="addHabitModalTitle" (click)="$event.stopPropagation()">
       <div class="modal-header-row">
-        <h3 class="modal-title">Add New Habit ✨</h3>
+        <h3 id="addHabitModalTitle" class="modal-title">Add New Habit ✨</h3>
         <button class="modal-close" type="button" aria-label="Close" (click)="closeAddHabit()">&times;</button>
       </div>
 

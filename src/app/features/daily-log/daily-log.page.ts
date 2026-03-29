@@ -1,7 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
-import { TitleCasePipe } from '@angular/common';
+import { TitleCasePipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -15,7 +14,7 @@ const CATEGORIES: HabitCategory[] = ['fitness', 'study', 'mindfulness', 'reading
 @Component({
   selector: 'app-daily-log-page',
   standalone: true,
-  imports: [TitleCasePipe, FormsModule, LoaderComponent, EmptyStateComponent],
+  imports: [TitleCasePipe, DatePipe, FormsModule, LoaderComponent, EmptyStateComponent],
   templateUrl: './daily-log.page.html',
   styleUrls: ['./daily-log.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,7 +22,6 @@ const CATEGORIES: HabitCategory[] = ['fitness', 'study', 'mindfulness', 'reading
 export class DailyLogPage implements OnInit {
   private dashboardService = inject(DashboardService);
   private destroyRef = inject(DestroyRef);
-  private router = inject(Router);
 
   // ── State ──
   loading = signal(true);
@@ -67,9 +65,12 @@ export class DailyLogPage implements OnInit {
     return Math.round((this.habitsCompletedToday() / total) * 100);
   });
 
-  weeklyAvg = computed(() =>
-    Math.round((this.dashboard()?.weekly_summary?.completion_rate ?? 0) * 100)
-  );
+  weeklyAvg = computed(() => {
+    const raw = this.dashboard()?.weekly_summary?.completion_rate ?? 0;
+    // Backend may return a ratio (0–1) or already a percentage (> 1)
+    let pct = raw <= 1 ? raw * 100 : raw;
+    return Math.round(Math.min(100, Math.max(0, pct)));
+  });
 
   bestStreak = computed(() => {
     const habits = this.allHabits();
@@ -77,31 +78,26 @@ export class DailyLogPage implements OnInit {
     return Math.max(...habits.map(h => h.streak?.current_streak ?? 0));
   });
 
-  // ── Heatmap — 84 cells (12 weeks × 7 days) ──
+  // ── Heatmap — 7 cells from weekly_summary.days ──
+  readonly DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
   heatmapCells = computed(() => {
     const data = this.dashboard();
     const days = data?.weekly_summary?.days ?? [];
-    const totalHabits = this.totalHabits() || 1;
-
-    const dayMap = new Map<string, number>();
-    for (const day of days) {
-      dayMap.set(day.date, Math.round((day.habits_completed / totalHabits) * 100));
-    }
-
-    const cells: { date: string; level: number }[] = [];
-    const now = new Date();
-    for (let i = 83; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
-      const pct = dayMap.get(dateStr) ?? -1;
+    const totalHabits = this.totalHabits();
+    const sortedDays = [...days].sort((a, b) => a.date.localeCompare(b.date));
+    return sortedDays.map(day => {
+      const pct = totalHabits === 0
+        ? 0
+        : Math.round((day.habits_completed / totalHabits) * 100);
       let level = 0;
       if (pct > 0 && pct < 50) level = 1;
       else if (pct >= 50 && pct < 80) level = 2;
       else if (pct >= 80) level = 3;
-      cells.push({ date: dateStr, level });
-    }
-    return cells;
+      const d = new Date(day.date + 'T00:00:00');
+      const dayLabel = this.DAY_LABELS[d.getDay()];
+      return { date: day.date, level, dayLabel };
+    });
   });
 
   // ── Helpers ──
@@ -185,12 +181,23 @@ export class DailyLogPage implements OnInit {
     }
     this.savingHabit.set(true);
     this.habitError.set(null);
+    // Normalize reminder_time from HH:MM to HH:MM:SS (backend expects HH:MM:SS)
+    const rawTime = this.habitForm.reminder_time;
+    const normalizedTime = rawTime
+      ? (rawTime.length === 5 ? rawTime + ':00' : rawTime)
+      : undefined;
+
+    const dailyTarget =
+      this.habitForm.daily_target && this.habitForm.daily_target > 0
+        ? this.habitForm.daily_target
+        : 1;
+
     const payload: CreateHabitPayload = {
       name: this.habitForm.name.trim(),
       category: this.habitForm.category,
-      reminder_time: this.habitForm.reminder_time || undefined,
+      reminder_time: normalizedTime,
       duration_minutes: this.habitForm.duration_minutes || undefined,
-      daily_target: this.habitForm.daily_target || undefined,
+      daily_target: dailyTarget,
     };
     this.dashboardService.createHabit(payload)
       .pipe(
@@ -202,7 +209,10 @@ export class DailyLogPage implements OnInit {
           this.closeAddHabit();
           this.loadData();
         },
-        error: err => this.habitError.set(err?.error?.message || 'Failed to create habit'),
+        error: err => {
+          const message = err?.error?.message || err?.error?.detail || 'Failed to create habit';
+          this.habitError.set(message);
+        },
       });
   }
 }
