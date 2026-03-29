@@ -18,6 +18,7 @@ import {
   GoalPriority,
   MilestoneCreate,
   GoalCreate,
+  GoalUpdate,
 } from '../../core/models/goal.model';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -61,6 +62,14 @@ export class GoalsPage implements OnInit {
   formError = signal<string | null>(null);
   goalForm: GoalForm = this.defaultForm();
   newMilestoneLabel = '';
+
+  // ── Edit Goal Modal ──
+  showEditModal = signal(false);
+  editingGoalId = signal<string | null>(null);
+  editForm: GoalForm = this.defaultForm();
+  editMilestoneLabel = '';
+  editFormLoading = signal(false);
+  editFormError = signal<string | null>(null);
 
   // ── Progress Modal ──
   showProgressModal = signal(false);
@@ -196,6 +205,88 @@ export class GoalsPage implements OnInit {
         },
         error: (err) => {
           this.formError.set(err?.error?.detail ?? 'Failed to create goal. Please try again.');
+        },
+      });
+  }
+
+  // ── Edit Goal Modal ──
+  openEditModal(goal: GoalResponse): void {
+    this.editingGoalId.set(goal.id);
+    this.editForm = {
+      title: goal.title,
+      description: goal.description ?? '',
+      priority: goal.priority,
+      deadline: goal.deadline ? goal.deadline.slice(0, 10) : '',
+      target_value: goal.target_value ?? '',
+      unit: goal.unit ?? '',
+      category: goal.category,
+      milestones: goal.milestones.map(m => m.label),
+    };
+    this.editMilestoneLabel = '';
+    this.editFormError.set(null);
+    this.showEditModal.set(true);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.editingGoalId.set(null);
+  }
+
+  addMilestoneToEditForm(): void {
+    const label = this.editMilestoneLabel.trim();
+    if (!label) return;
+    if (!this.editForm.milestones.includes(label)) {
+      this.editForm.milestones = [...this.editForm.milestones, label];
+    }
+    this.editMilestoneLabel = '';
+  }
+
+  removeMilestoneFromEditForm(index: number): void {
+    this.editForm.milestones = this.editForm.milestones.filter((_, i) => i !== index);
+  }
+
+  onEditMilestoneLabelKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.addMilestoneToEditForm();
+    }
+  }
+
+  submitEdit(): void {
+    const goalId = this.editingGoalId();
+    if (!goalId) return;
+    const form = this.editForm;
+    if (!form.title.trim()) {
+      this.editFormError.set('Title is required.');
+      return;
+    }
+
+    const milestones: MilestoneCreate[] = form.milestones.map(label => ({ label }));
+
+    const payload: GoalUpdate = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      priority: form.priority,
+      category: form.category,
+      deadline: form.deadline || null,
+      target_value: form.target_value ? form.target_value : null,
+      unit: form.unit.trim() || null,
+      milestones,
+    };
+
+    this.editFormLoading.set(true);
+    this.editFormError.set(null);
+
+    this.goalService
+      .updateGoal(goalId, payload)
+      .pipe(finalize(() => this.editFormLoading.set(false)))
+      .subscribe({
+        next: (updated) => {
+          this.goals.update(list => list.map(g => (g.id === updated.id ? updated : g)));
+          this.closeEditModal();
+        },
+        error: (err) => {
+          this.editFormError.set(err?.error?.detail ?? 'Failed to update goal. Please try again.');
         },
       });
   }

@@ -55,8 +55,12 @@
                   {{ goal.deadline | date:'MMM d, y' }}
                 </span>
               }
+              <!-- Edit -->
+              <button class="btn-icon-edit" title="Edit goal" (click)="openEditModal(goal); $event.stopPropagation()">
+                <i class="bi bi-pencil"></i>
+              </button>
               <!-- Delete -->
-              <button class="btn-icon-danger" title="Delete goal" (click)="deleteGoal(goal.id)">
+              <button class="btn-icon-danger" title="Delete goal" (click)="deleteGoal(goal.id); $event.stopPropagation()">
                 <i class="bi bi-trash3"></i>
               </button>
             </div>
@@ -132,6 +136,113 @@
       }
     </div>
   }
+}
+
+<!-- ═══ Edit Goal Modal ═══ -->
+@if (showEditModal()) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editGoalModalTitle" (click)="$event.stopPropagation()">
+      <div class="modal-header-row">
+        <h3 id="editGoalModalTitle" class="modal-title">Edit Goal ✏️</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeEditModal()">&times;</button>
+      </div>
+
+      @if (editFormError(); as err) {
+        <div class="form-error">{{ err }}</div>
+      }
+
+      <!-- Title -->
+      <div class="form-group">
+        <label for="editGoalTitle">Goal Title <span class="required">*</span></label>
+        <input id="editGoalTitle" type="text" class="form-control"
+          placeholder="e.g. Run a marathon, Read 12 books..."
+          [(ngModel)]="editForm.title" maxlength="200">
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="editGoalDesc">Description</label>
+        <textarea id="editGoalDesc" class="form-control" rows="2"
+          placeholder="Optional details about your goal..."
+          [(ngModel)]="editForm.description" maxlength="500"></textarea>
+      </div>
+
+      <!-- Priority & Category -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="editGoalPriority">Priority</label>
+          <select id="editGoalPriority" class="form-control" [(ngModel)]="editForm.priority">
+            @for (p of priorities; track p) {
+              <option [value]="p">{{ p | titlecase }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group flex-1">
+          <label for="editGoalCategory">Category</label>
+          <select id="editGoalCategory" class="form-control" [(ngModel)]="editForm.category">
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ cat | titlecase }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Deadline -->
+      <div class="form-group">
+        <label for="editGoalDeadline">Deadline</label>
+        <input id="editGoalDeadline" type="date" class="form-control" [(ngModel)]="editForm.deadline">
+      </div>
+
+      <!-- Target Value & Unit -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="editGoalTarget">Target Value <span class="hint">(numeric goals)</span></label>
+          <input id="editGoalTarget" type="number" class="form-control"
+            placeholder="e.g. 100, 12, 50..." [(ngModel)]="editForm.target_value" min="0">
+        </div>
+        <div class="form-group flex-1">
+          <label for="editGoalUnit">Unit</label>
+          <input id="editGoalUnit" type="text" class="form-control"
+            placeholder="km, books, hours..." [(ngModel)]="editForm.unit" maxlength="30">
+        </div>
+      </div>
+
+      <!-- Milestones -->
+      <div class="form-group">
+        <label>Milestones <span class="hint">(replaces existing)</span></label>
+        <div class="milestone-input-row">
+          <input type="text" class="form-control"
+            placeholder="Add a milestone step..."
+            [(ngModel)]="editMilestoneLabel"
+            (keydown)="onEditMilestoneLabelKeydown($event)"
+            maxlength="200">
+          <button type="button" class="btn-add-milestone" (click)="addMilestoneToEditForm()">
+            <i class="bi bi-plus"></i>
+          </button>
+        </div>
+        @if (editForm.milestones.length > 0) {
+          <div class="milestones-preview">
+            @for (m of editForm.milestones; track m; let i = $index) {
+              <div class="milestone-chip">
+                <span>{{ m }}</span>
+                <button type="button" class="milestone-chip-remove" (click)="removeMilestoneFromEditForm(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" (click)="closeEditModal()">Cancel</button>
+        <button type="button" class="btn-grad" [disabled]="editFormLoading()" (click)="submitEdit()">
+          @if (editFormLoading()) { Saving... } @else { Save Changes }
+        </button>
+      </div>
+    </div>
+  </div>
 }
 
 <!-- ═══ Add Goal Modal ═══ -->
