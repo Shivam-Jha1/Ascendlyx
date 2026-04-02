@@ -306,13 +306,18 @@
   border-radius: 5px;
   border: 2px solid rgba(255, 255, 255, 0.18);
   background: transparent;
-  color: transparent;
+  color: transparent; // hides non-icon content; overridden below for loading/checked states
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   transition: all 0.2s;
+
+  // Show spinner visibly while a toggle is in-flight
+  .spin {
+    color: var(--ax-text-muted);
+  }
 
   &:hover:not(:disabled) {
     border-color: var(--ax-green);

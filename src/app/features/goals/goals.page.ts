@@ -28,7 +28,7 @@ interface GoalForm {
   description: string;
   priority: GoalPriority;
   deadline: string;
-  target_value: string;
+  target_value: number | null;
   unit: string;
   category: string;
   milestones: string[];
@@ -74,7 +74,7 @@ export class GoalsPage implements OnInit {
   // ── Progress Modal ──
   showProgressModal = signal(false);
   progressGoal = signal<GoalResponse | null>(null);
-  progressDelta = '';
+  progressDelta: number | null = null;
   progressNote = '';
   progressLoading = signal(false);
   progressError = signal<string | null>(null);
@@ -131,12 +131,17 @@ export class GoalsPage implements OnInit {
     this.toggleLoading.set(milestoneId);
     this.goalService
       .toggleMilestone(goal.id, milestoneId)
-      .pipe(finalize(() => this.toggleLoading.set(null)))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.toggleLoading.set(null)),
+      )
       .subscribe({
         next: (updated) => {
           this.goals.update(list => list.map(g => (g.id === updated.id ? updated : g)));
         },
-        error: () => {},
+        error: (err) => {
+          console.error('Failed to toggle milestone', err);
+        },
       });
   }
 
@@ -187,7 +192,7 @@ export class GoalsPage implements OnInit {
       priority: form.priority,
       category: form.category,
       deadline: form.deadline || null,
-      target_value: form.target_value ? form.target_value : null,
+      target_value: form.target_value !== null ? String(form.target_value) : null,
       unit: form.unit.trim() || null,
       milestones,
     };
@@ -217,7 +222,7 @@ export class GoalsPage implements OnInit {
       description: goal.description ?? '',
       priority: goal.priority,
       deadline: goal.deadline ? goal.deadline.slice(0, 10) : '',
-      target_value: goal.target_value ?? '',
+      target_value: goal.target_value != null ? parseFloat(goal.target_value) : null,
       unit: goal.unit ?? '',
       category: goal.category,
       milestones: goal.milestones.map(m => m.label),
@@ -269,7 +274,7 @@ export class GoalsPage implements OnInit {
       priority: form.priority,
       category: form.category,
       deadline: form.deadline || null,
-      target_value: form.target_value ? form.target_value : null,
+      target_value: form.target_value !== null ? String(form.target_value) : null,
       unit: form.unit.trim() || null,
       milestones,
     };
@@ -294,7 +299,7 @@ export class GoalsPage implements OnInit {
   // ── Progress Modal ──
   openProgressModal(goal: GoalResponse): void {
     this.progressGoal.set(goal);
-    this.progressDelta = '';
+    this.progressDelta = null;
     this.progressNote = '';
     this.progressError.set(null);
     this.showProgressModal.set(true);
@@ -308,8 +313,8 @@ export class GoalsPage implements OnInit {
   submitProgress(): void {
     const goal = this.progressGoal();
     if (!goal) return;
-    const delta = parseFloat(this.progressDelta);
-    if (isNaN(delta)) {
+    const delta = this.progressDelta;
+    if (delta === null || isNaN(delta)) {
       this.progressError.set('Enter a valid number.');
       return;
     }
@@ -333,12 +338,17 @@ export class GoalsPage implements OnInit {
 
   // ── Delete ──
   deleteGoal(goalId: string): void {
-    this.goalService.deleteGoal(goalId).subscribe({
-      next: () => {
-        this.goals.update(list => list.filter(g => g.id !== goalId));
-      },
-      error: () => {},
-    });
+    this.goalService
+      .deleteGoal(goalId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.goals.update(list => list.filter(g => g.id !== goalId));
+        },
+        error: (err) => {
+          console.error('Failed to delete goal', err);
+        },
+      });
   }
 
   private defaultForm(): GoalForm {
@@ -347,7 +357,7 @@ export class GoalsPage implements OnInit {
       description: '',
       priority: 'medium',
       deadline: '',
-      target_value: '',
+      target_value: null,
       unit: '',
       category: 'general',
       milestones: [],

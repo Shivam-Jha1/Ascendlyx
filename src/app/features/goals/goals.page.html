@@ -56,11 +56,21 @@
                 </span>
               }
               <!-- Edit -->
-              <button class="btn-icon-edit" title="Edit goal" (click)="openEditModal(goal); $event.stopPropagation()">
+              <button
+                class="btn-icon-edit"
+                title="Edit goal"
+                aria-label="Edit goal"
+                (click)="openEditModal(goal); $event.stopPropagation()"
+              >
                 <i class="bi bi-pencil"></i>
               </button>
               <!-- Delete -->
-              <button class="btn-icon-danger" title="Delete goal" (click)="deleteGoal(goal.id); $event.stopPropagation()">
+              <button
+                class="btn-icon-danger"
+                title="Delete goal"
+                aria-label="Delete goal"
+                (click)="deleteGoal(goal.id); $event.stopPropagation()"
+              >
                 <i class="bi bi-trash3"></i>
               </button>
             </div>
