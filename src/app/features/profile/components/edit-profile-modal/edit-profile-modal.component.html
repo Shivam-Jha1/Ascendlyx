@@ -1,0 +1,94 @@
+<div
+  class="modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="edit-profile-title"
+  (click)="onBackdropClick($event)"
+>
+  <div class="modal-content" #modalContent>
+    <div class="modal-header">
+      <h2 id="edit-profile-title" class="modal-title">Edit Profile</h2>
+      <button class="modal-close" (click)="closed.emit()" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="modal-body">
+      <!-- Username -->
+      <div class="form-field">
+        <label class="field-label" for="username">Username</label>
+        <input
+          #firstInput
+          id="username"
+          type="text"
+          formControlName="username"
+          class="field-input"
+          [class.invalid]="usernameError"
+          autocomplete="username"
+        />
+        @if (usernameError) {
+          <span class="field-error">{{ usernameError }}</span>
+        }
+      </div>
+
+      <!-- Bio -->
+      <div class="form-field">
+        <label class="field-label" for="bio">Bio</label>
+        <textarea
+          id="bio"
+          formControlName="bio"
+          class="field-input field-textarea"
+          rows="3"
+        ></textarea>
+        <span class="field-hint">{{ bioCharCount }} characters remaining</span>
+      </div>
+
+      <!-- Location -->
+      <div class="form-field">
+        <label class="field-label" for="location">Location</label>
+        <input
+          id="location"
+          type="text"
+          formControlName="location"
+          class="field-input"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- Avatar URL -->
+      <div class="form-field">
+        <label class="field-label" for="avatar_url">Avatar URL</label>
+        <input
+          id="avatar_url"
+          type="url"
+          formControlName="avatar_url"
+          class="field-input"
+          autocomplete="off"
+        />
+        @if (avatarPreview) {
+          <div class="avatar-preview">
+            <img [src]="avatarPreview" alt="Avatar preview" class="preview-img" />
+          </div>
+        }
+      </div>
+
+      @if (formError()) {
+        <div class="form-error">{{ formError() }}</div>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closed.emit()">Cancel</button>
+        <button
+          type="submit"
+          class="btn-save"
+          [disabled]="form.invalid || isSaving()"
+        >
+          @if (isSaving()) {
+            <span class="spinner"></span>
+          }
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<div class="section-card">
+  <h3 class="section-title">Habit Consistency</h3>
+
+  <div class="gauge-wrapper">
+    <svg
+      class="gauge-svg"
+      viewBox="0 0 100 100"
+      [attr.aria-label]="displayPercent() + '% consistency, rated ' + consistency().rating"
+    >
+      <!-- Track -->
+      <circle
+        cx="50" cy="50" r="45"
+        fill="none"
+        stroke="rgba(255,255,255,0.06)"
+        stroke-width="8"
+      />
+      <!-- Fill arc -->
+      <circle
+        cx="50" cy="50" r="45"
+        fill="none"
+        stroke="var(--accent-green)"
+        stroke-width="8"
+        stroke-linecap="round"
+        [attr.stroke-dasharray]="circumference"
+        [attr.stroke-dashoffset]="strokeOffset()"
+        transform="rotate(-90 50 50)"
+        class="gauge-fill"
+      />
+    </svg>
+    <div class="gauge-center">
+      <span class="gauge-value">{{ displayPercent() }}%</span>
+      <span class="gauge-sublabel">All time</span>
+    </div>
+  </div>
+
+  <div class="gauge-info">
+    <span class="gauge-rating" [style.color]="ratingColor()">
+      {{ consistency().rating }}
+    </span>
+    <span class="gauge-percentile">{{ percentileDisplay }}</span>
+  </div>
+</div>

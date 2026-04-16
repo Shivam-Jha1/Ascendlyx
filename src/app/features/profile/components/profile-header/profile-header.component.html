@@ -1,0 +1,42 @@
+<div class="profile-header">
+  <div class="header-left">
+    @if (profile().avatar_url) {
+      <img
+        [src]="profile().avatar_url"
+        [alt]="profile().name"
+        class="avatar-img"
+        [attr.aria-label]="profile().name"
+      />
+    } @else {
+      <div class="avatar-initial" [attr.aria-label]="profile().name">
+        {{ profile().avatar_initial }}
+      </div>
+    }
+  </div>
+
+  <div class="header-center">
+    <h1 class="display-name">{{ profile().name }}</h1>
+    <div class="username-row">
+      <span class="username">&#64;{{ profile().username }}</span>
+      <span class="tier-badge" [class]="tierClass">{{ tierLabel }}</span>
+    </div>
+    @if (profile().bio) {
+      <p class="bio">{{ profile().bio }}</p>
+    }
+    <div class="meta-row">
+      @if (profile().location) {
+        <span class="meta-item">📍 {{ profile().location }}</span>
+      }
+      <span class="meta-item">📅 Joined {{ joinedDate }}</span>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn-action" (click)="editClicked.emit()">
+      <i class="bi bi-pencil-fill"></i> Edit Profile
+    </button>
+    <button class="btn-action btn-privacy">
+      <i class="bi bi-lock-fill"></i> Privacy
+    </button>
+  </div>
+</div>

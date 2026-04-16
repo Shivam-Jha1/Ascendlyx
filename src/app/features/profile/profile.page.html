@@ -1,4 +1,63 @@
 <div class="profile-page">
-  <h2>Profile</h2>
-  <!-- Profile content placeholder -->
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <app-skeleton-loader variant="profile" />
+  }
+
+  <!-- Error State -->
+  @if (error(); as err) {
+    <div class="error-banner">
+      <p class="error-msg">{{ err }}</p>
+      <button class="btn-retry" (click)="onRetry()">
+        <i class="bi bi-arrow-clockwise"></i> Retry
+      </button>
+    </div>
+  }
+
+  <!-- Profile Loaded -->
+  @if (profile(); as p) {
+    <!-- Hero Card -->
+    <div class="hero-card" @fadeSlideIn>
+      <app-profile-header
+        [profile]="p"
+        (editClicked)="onEditClicked()"
+      />
+      <app-quick-stats [stats]="p.quick_stats" />
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid" @staggerColumns>
+      <!-- Left Column -->
+      <div class="col-left">
+        <app-productivity-stats [stats]="p.productivity_stats" />
+        <app-public-goals [goals]="p.public_goals" />
+      </div>
+
+      <!-- Right Column -->
+      <div class="col-right">
+        <app-consistency-gauge
+          [consistency]="p.consistency"
+          [ratingColor]="ratingColor()"
+        />
+        <app-badges-grid
+          [earned]="earnedBadges()"
+          [locked]="lockedBadges()"
+        />
+        <app-privacy-settings
+          [privacy]="p.privacy"
+          [saving]="privacySaving()"
+          (privacyChanged)="onPrivacyChanged($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    @if (showEditModal()) {
+      <app-edit-profile-modal
+        [profile]="p"
+        (saved)="onEditSaved($event)"
+        (closed)="onEditClosed()"
+      />
+    }
+  }
 </div>

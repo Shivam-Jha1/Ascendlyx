@@ -1,0 +1,20 @@
+<div class="section-card">
+  <div class="goals-header">
+    <h3 class="section-title">Public Goals</h3>
+    <span class="visible-label">Visible to friends</span>
+  </div>
+
+  @for (goal of goals(); track goal.id) {
+    <div class="goal-row">
+      <div class="goal-info">
+        <span class="goal-title">{{ goal.title }}</span>
+        <span class="goal-percent">{{ getProgressDetail(goal) }}</span>
+      </div>
+      <app-progress-bar
+        [percentage]="goal.progress_percentage"
+        [color]="getBarColor(goal.priority)"
+        [height]="6"
+      />
+    </div>
+  }
+</div>
