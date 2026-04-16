@@ -41,6 +41,32 @@
   // Layout
   --ax-sidebar-width: 240px;
   --ax-navbar-height: 60px;
+
+  // ── Profile Design Tokens ──
+  --bg-base: #090d14;
+  --bg-surface: #0f1419;
+  --bg-card: #161b22;
+  --bg-card-hover: #1c2129;
+  --bg-input: #0d1117;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(108, 99, 255, 0.5);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --accent-blue: #58a6ff;
+  --accent-cyan: #39d2c0;
+  --accent-green: #3fb950;
+  --accent-orange: #f0883e;
+  --accent-purple: #bc8cff;
+  --accent-red: #f85149;
+  --accent-yellow: #d29922;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --font-heading: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
 }
 
 // ─── Base Reset & Body ───

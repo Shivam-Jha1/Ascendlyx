@@ -1,0 +1,10 @@
+<div class="quick-stats">
+  @for (tile of tiles; track tile.label; let i = $index) {
+    <div class="stat-tile" [attr.aria-label]="displayValues()[i] + ' ' + tile.label">
+      <span class="stat-value" [style.color]="tile.color">
+        {{ tile.prefix }}{{ displayValues()[i] }}{{ tile.suffix }}
+      </span>
+      <span class="stat-label">{{ tile.label }}</span>
+    </div>
+  }
+</div>

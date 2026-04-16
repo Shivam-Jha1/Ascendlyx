@@ -1,0 +1,21 @@
+<div class="section-card">
+  <h3 class="section-title">Badges</h3>
+  <div class="badges-grid">
+    @for (badge of allBadges; track badge.slug) {
+      <div class="badge-item" [class.locked]="!badge.earned">
+        <div class="badge-icon-wrapper">
+          <span class="badge-icon">{{ badge.icon_value }}</span>
+        </div>
+        <span class="badge-name">{{ badge.name }}</span>
+        @if (!badge.earned) {
+          <span class="badge-locked-label">Locked</span>
+        }
+        <!-- Pure CSS tooltip -->
+        <div class="badge-tooltip">
+          <span class="tooltip-name">{{ badge.name }}</span>
+          <span class="tooltip-desc">{{ badge.description }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

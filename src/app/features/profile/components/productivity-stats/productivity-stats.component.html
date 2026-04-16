@@ -1,0 +1,13 @@
+<div class="section-card">
+  <h3 class="section-title">Productivity Stats</h3>
+  <div class="stats-grid">
+    @for (tile of tiles; track tile.label; let i = $index) {
+      <div class="prod-tile" [attr.aria-label]="displayValues()[i] + ' ' + tile.label">
+        <span class="tile-value" [style.color]="tile.color">
+          {{ tile.prefix }}{{ displayValues()[i] }}{{ tile.suffix }}
+        </span>
+        <span class="tile-label">{{ tile.label }}</span>
+      </div>
+    }
+  </div>
+</div>

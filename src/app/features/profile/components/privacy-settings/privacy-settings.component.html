@@ -1,0 +1,15 @@
+<div class="section-card">
+  <h3 class="section-title">Activity Visibility</h3>
+  <div class="privacy-rows">
+    @for (row of rows; track row.key) {
+      <div class="privacy-row">
+        <span class="privacy-label">{{ row.label }}</span>
+        <app-toggle-switch
+          [checked]="privacy()[row.key]"
+          [disabled]="saving()"
+          (toggled)="onToggle(row.key, $event)"
+        />
+      </div>
+    }
+  </div>
+</div>
