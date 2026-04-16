@@ -106,9 +106,18 @@ export interface ReplyCreatePayload {
 }
 
 export interface WsFeedEvent {
-  type: 'new_post' | 'reaction_update' | 'new_reply' | 'post_deleted';
+  type: 'new_post' | 'reaction_update' | 'new_reply' | 'post_deleted' | 'reply_deleted';
+  // new_post
   post?: ActivityPost;
+  // post_deleted
   post_id?: string;
+  // reaction_update
+  reactor_id?: string;
+  reaction_type?: ReactionType;
+  reactions?: ReactionSummary[];
+  // new_reply / reply_deleted
+  reply?: PostReply;
+  reply_id?: string;
 }
 
 export const REACTION_META: Record<ReactionType, { emoji: string; label: string }> = {

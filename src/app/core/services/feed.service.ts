@@ -242,19 +242,56 @@ export class FeedService {
   }
 
   private handleWsEvent(event: WsFeedEvent): void {
-    if (event.type === 'new_post' && event.post) {
-      const enriched = { ...event.post, showReplies: false, replyLoading: false, replies: [] };
-      this.posts.update(prev => {
-        const exists = prev.some(p => p.id === enriched.id);
-        return exists ? prev : [enriched, ...prev];
-      });
-    } else if (event.type === 'post_deleted' && event.post_id) {
-      this.posts.update(prev => prev.filter(p => p.id !== event.post_id));
-    } else if (event.type === 'reaction_update' && event.post) {
-      const updated = event.post;
-      this.posts.update(prev =>
-        prev.map(p => (p.id === updated.id ? { ...p, reactions: updated.reactions } : p))
-      );
+    switch (event.type) {
+      case 'new_post': {
+        if (!event.post) break;
+        const enriched = { ...event.post, showReplies: false, replyLoading: false, replies: [] };
+        this.posts.update(prev =>
+          prev.some(p => p.id === enriched.id) ? prev : [enriched, ...prev]
+        );
+        break;
+      }
+      case 'post_deleted': {
+        if (!event.post_id) break;
+        this.posts.update(prev => prev.filter(p => p.id !== event.post_id));
+        break;
+      }
+      case 'reaction_update': {
+        if (!event.post_id || !event.reactions) break;
+        this.posts.update(prev =>
+          prev.map(p => p.id === event.post_id ? { ...p, reactions: event.reactions! } : p)
+        );
+        break;
+      }
+      case 'new_reply': {
+        if (!event.post_id || !event.reply) break;
+        this.posts.update(prev =>
+          prev.map(p => {
+            if (p.id !== event.post_id) return p;
+            const alreadyHas = (p.replies ?? []).some(r => r.id === event.reply!.id);
+            return alreadyHas ? p : {
+              ...p,
+              reply_count: p.reply_count + 1,
+              replies: [...(p.replies ?? []), event.reply!],
+              showReplies: true,
+            };
+          })
+        );
+        break;
+      }
+      case 'reply_deleted': {
+        if (!event.post_id || !event.reply_id) break;
+        this.posts.update(prev =>
+          prev.map(p =>
+            p.id !== event.post_id ? p : {
+              ...p,
+              reply_count: Math.max(0, p.reply_count - 1),
+              replies: (p.replies ?? []).filter(r => r.id !== event.reply_id),
+            }
+          )
+        );
+        break;
+      }
     }
   }
 

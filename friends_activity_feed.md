@@ -29,6 +29,8 @@ Extended the Ascendlyx backend with a full **Friends & Activity Feed** feature a
 |------|--------|
 | `app/models/__init__.py` | Registered `ActivityPost`, `PostReaction`, `PostReply` |
 | `app/api/router.py` | Added `feed` and `ws_feed` routers |
+| `app/api/v1/feed.py` | All feed mutation routes (create/delete post, react, add/delete reply) now broadcast events via WebSocket `ConnectionManager` to relevant connected users |
+| `app/services/feed_service.py` | Exposed `get_friend_ids()` and `get_post()` as public methods for route-level WebSocket broadcasting |
 | `app/core/exceptions.py` | Added `PostNotFoundError`, `ReplyNotFoundError`, `PostNotVisibleError`, `SearchQueryTooShortError` |
 | `app/services/habit_service.py` | Auto-post on streak milestones (every 10 days), accepts optional `redis` param |
 | `app/services/goal_service.py` | Auto-post on goal completion (both progress-based and milestone-based) |
@@ -84,7 +86,30 @@ Extended the Ascendlyx backend with a full **Friends & Activity Feed** feature a
 - **Auto-posts**: Wrapped in try/except so failures never break parent operations (checkin/goal progress)
 - **Feed cache**: Redis with 30s TTL, invalidated on post create/update/delete
 - **WebSocket**: In-memory `ConnectionManager` (swap to Redis pub/sub for multi-instance)
+- **Real-time broadcasts**: All feed mutations (post, reply, reaction, delete) push WebSocket events to relevant users so their UI updates instantly without a manual refresh
 - **JSON metadata**: Uses `sqlalchemy.types.JSON` (compatible with both PostgreSQL and SQLite for testing)
+
+## WebSocket Real-Time Events
+
+All events are sent as JSON via the `/api/v1/ws/feed?token=<JWT>` WebSocket connection.
+
+| Event Type | Triggered By | Sent To | Payload |
+|------------|-------------|---------|---------|
+| `new_post` | Creating a post | All friends of the author | `{ type, post }` — full `ActivityPostResponse` |
+| `post_deleted` | Deleting a post | All friends of the author | `{ type, post_id }` |
+| `reaction_update` | Toggling a reaction | Post owner (if not self) | `{ type, post_id, reactor_id, reaction_type, reactions[] }` |
+| `new_reply` | Adding a reply | Post owner (if not self) | `{ type, post_id, reply }` — full `ReplyResponse` |
+| `reply_deleted` | Deleting a reply | Post owner (if not self) | `{ type, post_id, reply_id }` |
+
+### Frontend Integration
+
+1. Connect to `ws://host/api/v1/ws/feed?token=<access_token>` on app load
+2. Listen for incoming JSON messages and switch on the `type` field
+3. For `new_post` — prepend to the feed list
+4. For `post_deleted` — remove the post from the feed list
+5. For `reaction_update` — update the reaction summary on the matching post
+6. For `new_reply` — append to the reply list on the matching post
+7. For `reply_deleted` — remove the reply from the matching post
 
 ## Test Coverage
 
