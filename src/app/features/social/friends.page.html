@@ -1,4 +1,292 @@
 <div class="friends-page">
-  <h2>Friends</h2>
-  <!-- Friends content placeholder -->
+  <!-- ── Search Bar ── -->
+  <div class="search-bar-wrapper">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Find friends by username..."
+        [value]="searchQuery()"
+        (input)="onSearchInput($any($event.target).value)"
+        aria-label="Search friends by username"
+      />
+      @if (searchQuery()) {
+        <button class="search-clear" (click)="clearSearch()" aria-label="Clear search">✕</button>
+      }
+    </div>
+
+    <!-- Search Results Dropdown -->
+    @if (searchResults().length > 0) {
+      <div class="search-results">
+        @for (user of searchResults(); track user.user_id) {
+          <div class="search-result-item">
+            <div
+              class="sr-avatar"
+              [style.background]="avatarColor(user.avatar_initial)"
+            >{{ user.avatar_initial }}</div>
+            <div class="sr-info">
+              <span class="sr-name">{{ user.name }}</span>
+              <span class="sr-username">&#64;{{ user.username }}</span>
+            </div>
+            <button
+              class="sr-action"
+              [class.sent]="user.friendship_status === 'pending_sent'"
+              [class.accepted]="user.friendship_status === 'accepted'"
+              [class.receive]="user.friendship_status === 'pending_received'"
+              [disabled]="(user.friendship_status !== 'none' && user.friendship_status !== 'pending_received') || sendingRequestFor() === user.user_id"
+              (click)="handleFriendAction(user)"
+            >
+              @if (sendingRequestFor() === user.user_id) { <span class="mini-spinner"></span> }
+              {{ friendStatusLabel(user.friendship_status) }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ── Page Header ── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Friends <span class="title-emoji">👥</span></h1>
+      <p class="page-sub">Stay accountable and motivated together</p>
+    </div>
+  </div>
+
+  <!-- ── Main Layout ── -->
+  <div class="social-layout">
+    <!-- ── Left Panel: Friends List ── -->
+    <aside class="friends-panel">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <span class="panel-title">My Friends</span>
+          <span class="friends-count">· {{ friendsTotal() }}</span>
+        </div>
+        <button class="btn-add" (click)="showCreatePost.set(false)">
+          + Add
+        </button>
+      </div>
+
+      @if (isLoadingFriends()) {
+        <div class="panel-loading">
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+        </div>
+      } @else {
+        <div class="friends-list">
+          @for (friend of visibleFriends(); track trackByFriendId($index, friend)) {
+            <div class="friend-item">
+              <div class="friend-avatar" [style.background]="avatarColor(friend.avatar_initial)">
+                {{ friend.avatar_initial }}
+              </div>
+              <div class="friend-info">
+                <span class="friend-name">{{ friend.name }}</span>
+                <span class="friend-streak-label">
+                  🔥 {{ friend.current_streak }} day streak
+                </span>
+              </div>
+              <div class="friend-streak-badge" [style.color]="'var(--accent-orange)'">
+                🔥 {{ friend.current_streak }}
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (friendsTotal() > 5) {
+          <button class="view-all-btn">
+            View all {{ friendsTotal() }} friends →
+          </button>
+        }
+      }
+    </aside>
+
+    <!-- ── Right Panel: Activity Feed ── -->
+    <main class="feed-panel">
+      <!-- Feed Header -->
+      <div class="feed-header">
+        <h2 class="feed-title">Activity Feed</h2>
+        <div class="feed-meta">
+          <span class="live-dot" [class.active]="isLive()"></span>
+          <span class="live-label">{{ isLive() ? 'Live updates' : 'Connecting…' }}</span>
+        </div>
+      </div>
+
+      <!-- Create Post -->
+      <div class="create-post">
+        @if (!showCreatePost()) {
+          <button class="create-post-trigger" (click)="showCreatePost.set(true)">
+            <span class="cp-icon">✏️</span>
+            Share something with your friends…
+          </button>
+        } @else {
+          <div class="create-post-form">
+            <textarea
+              class="cp-textarea"
+              placeholder="What are you working on?"
+              [value]="newPostContent()"
+              (input)="newPostContent.set($any($event.target).value)"
+              rows="3"
+              maxlength="1000"
+              aria-label="Post content"
+            ></textarea>
+            <div class="cp-actions">
+              <span class="cp-count">{{ newPostContent().length }}/1000</span>
+              <button class="btn-cancel-small" (click)="showCreatePost.set(false); newPostContent.set('')">
+                Cancel
+              </button>
+              <button
+                class="btn-post"
+                [disabled]="!newPostContent().trim() || isCreatingPost()"
+                (click)="submitPost()"
+              >
+                @if (isCreatingPost()) { <span class="mini-spinner"></span> }
+                Post
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Error Banner -->
+      @if (feedError()) {
+        <div class="feed-error">
+          <span>⚠ {{ feedError() }}</span>
+          <button class="retry-btn" (click)="retryFeed()">Retry</button>
+        </div>
+      }
+
+      <!-- Feed Posts -->
+      @if (isLoadingFeed() && posts().length === 0) {
+        <div class="feed-loading">
+          @for (n of [1,2,3]; track n) {
+            <div class="post-skeleton">
+              <div class="ps-header">
+                <div class="ps-avatar shimmer"></div>
+                <div class="ps-meta">
+                  <div class="ps-name shimmer"></div>
+                  <div class="ps-time shimmer"></div>
+                </div>
+              </div>
+              <div class="ps-body shimmer"></div>
+              <div class="ps-actions shimmer"></div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="posts-list">
+        @for (post of posts(); track trackByPostId($index, post)) {
+          <article class="post-card">
+            <!-- Post Header -->
+            <div class="post-header">
+              <div class="post-author">
+                <div
+                  class="post-avatar"
+                  [style.background]="avatarColor(post.author.avatar_initial)"
+                  [attr.aria-label]="post.author.name"
+                >
+                  {{ post.author.avatar_initial }}
+                </div>
+                <div class="post-author-info">
+                  <span class="post-author-name">{{ post.author.name }}</span>
+                  <span class="post-author-streak">
+                    <span class="streak-dot"></span>
+                    {{ post.author.current_streak }} days
+                  </span>
+                </div>
+              </div>
+              <span class="post-time">{{ post.time_ago }}</span>
+            </div>
+
+            <!-- Post Body -->
+            <div class="post-body">
+              <p class="post-content">{{ post.content }}</p>
+            </div>
+
+            <!-- Reactions + Reply -->
+            <div class="post-actions">
+              @for (r of getReactions(post); track r.type) {
+                <button
+                  class="reaction-btn"
+                  [class.active]="r.active"
+                  (click)="react(post.id, r.type)"
+                  [attr.aria-label]="r.label + ' reaction, ' + r.count + ' total'"
+                >
+                  {{ r.emoji }} {{ r.label }}
+                </button>
+              }
+              <button
+                class="reaction-btn reply-btn"
+                [class.active]="activeReplyPostId() === post.id"
+                (click)="openReply(post.id)"
+                [attr.aria-label]="'Reply, ' + post.reply_count + ' replies'"
+              >
+                💬 Reply
+                @if (post.reply_count > 0) { <span class="reply-count">{{ post.reply_count }}</span> }
+              </button>
+            </div>
+
+            <!-- Replies Section -->
+            @if (post.showReplies || activeReplyPostId() === post.id) {
+              <div class="replies-section">
+                @if (post.replyLoading) {
+                  <div class="replies-loading">Loading replies…</div>
+                } @else {
+                  @for (reply of post.replies; track reply.id) {
+                    <div class="reply-item">
+                      <div
+                        class="reply-avatar"
+                        [style.background]="avatarColor(reply.author.avatar_initial)"
+                      >{{ reply.author.avatar_initial }}</div>
+                      <div class="reply-body">
+                        <span class="reply-author">{{ reply.author.name }}</span>
+                        <span class="reply-time">· {{ reply.time_ago }}</span>
+                        <p class="reply-content">{{ reply.content }}</p>
+                      </div>
+                    </div>
+                  }
+                }
+
+                <!-- Reply Input -->
+                @if (activeReplyPostId() === post.id) {
+                  <div class="reply-input-row">
+                    <input
+                      type="text"
+                      class="reply-input"
+                      placeholder="Write a reply…"
+                      [value]="replyContent()"
+                      (input)="replyContent.set($any($event.target).value)"
+                      (keydown.enter)="submitReply(post.id)"
+                      maxlength="500"
+                      aria-label="Reply text"
+                    />
+                    <button
+                      class="btn-send"
+                      [disabled]="!replyContent().trim() || isSendingReply()"
+                      (click)="submitReply(post.id)"
+                    >Send</button>
+                  </div>
+                }
+              </div>
+            }
+          </article>
+        }
+      </div>
+
+      <!-- Load More -->
+      @if (hasMore() && !isLoadingFeed()) {
+        <button class="load-more-btn" (click)="loadMore()">
+          Load more posts
+        </button>
+      }
+
+      @if (isLoadingFeed() && posts().length > 0) {
+        <div class="load-more-spinner">
+          <div class="spinner-ring"></div>
+        </div>
+      }
+    </main>
+  </div>
 </div>
