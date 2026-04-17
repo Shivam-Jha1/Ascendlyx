@@ -661,10 +661,34 @@
 
 .reply-item {
   display: flex;
+  align-items: flex-start;
   gap: 0.6rem;
   margin-bottom: 0.65rem;
 
   &:last-of-type { margin-bottom: 0.75rem; }
+
+  &:hover .reply-delete-btn { opacity: 1; }
+}
+
+.reply-delete-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  line-height: 1;
+  margin-top: 0.15rem;
+  color: var(--ax-text-muted);
+
+  &:hover {
+    opacity: 1 !important;
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
 }
 
 .reply-avatar {

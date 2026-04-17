@@ -125,6 +125,23 @@ export class FeedService {
     );
   }
 
+  deleteReply(postId: string, replyId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/posts/${postId}/replies/${replyId}`).pipe(
+      tap(() => {
+        this.posts.update(prev =>
+          prev.map(p =>
+            p.id !== postId ? p : {
+              ...p,
+              reply_count: Math.max(0, p.reply_count - 1),
+              replies: (p.replies ?? []).filter(r => r.id !== replyId),
+            }
+          )
+        );
+      }),
+      catchError((err: HttpErrorResponse) => throwError(() => err))
+    );
+  }
+
   addReply(postId: string, payload: ReplyCreatePayload): Observable<PostReply> {
     return this.http.post<PostReply>(`${this.base}/posts/${postId}/replies`, payload).pipe(
       tap(reply => {
@@ -282,13 +299,18 @@ export class FeedService {
       case 'reply_deleted': {
         if (!event.post_id || !event.reply_id) break;
         this.posts.update(prev =>
-          prev.map(p =>
-            p.id !== event.post_id ? p : {
+          prev.map(p => {
+            if (p.id !== event.post_id) return p;
+            const existingReplies = p.replies ?? [];
+            const wasLoaded = existingReplies.some(r => r.id === event.reply_id);
+            return {
               ...p,
-              reply_count: Math.max(0, p.reply_count - 1),
-              replies: (p.replies ?? []).filter(r => r.id !== event.reply_id),
-            }
-          )
+              // Only decrement if we had this reply tracked; otherwise the
+              // reply_count from the next full fetch will correct itself.
+              reply_count: wasLoaded ? Math.max(0, p.reply_count - 1) : p.reply_count,
+              replies: existingReplies.filter(r => r.id !== event.reply_id),
+            };
+          })
         );
         break;
       }

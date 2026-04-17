@@ -9,10 +9,12 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeedService } from '../../core/services/feed.service';
+import { AuthService } from '../../core/services/auth.service';
 import {
   ActivityPost,
   FriendListItem,
   FriendSearchResult,
+  PostReply,
   ReactionType,
   REACTION_META,
 } from '../../core/models/feed.model';
@@ -27,6 +29,12 @@ import {
 })
 export class FriendsPage implements OnInit, OnDestroy {
   protected readonly feedService = inject(FeedService);
+  private readonly authService = inject(AuthService);
+
+  // ── Current user id (for delete permission checks) ──
+  readonly currentUserId = computed<string | null>(() =>
+    this.authService.getCurrentUserId()
+  );
 
   // ── Service signals (exposed to template) ──
   readonly posts = this.feedService.posts;
@@ -169,19 +177,25 @@ export class FriendsPage implements OnInit, OnDestroy {
   }
 
   // ── Replies ──
-  toggleReplies(postId: string): void {
-    this.feedService.toggleReplies(postId);
-    if (this.activeReplyPostId() === postId) {
-      this.activeReplyPostId.set(null);
-    }
-  }
-
   openReply(postId: string): void {
-    this.activeReplyPostId.set(this.activeReplyPostId() === postId ? null : postId);
-    if (this.activeReplyPostId() === postId) {
-      this.feedService.toggleReplies(postId);
+    const isOpen = this.activeReplyPostId() === postId;
+    const post = this.feedService.posts().find(p => p.id === postId);
+
+    if (isOpen) {
+      // Close: hide input and collapse reply list
+      this.activeReplyPostId.set(null);
+      this.replyContent.set('');
+      if (post?.showReplies) {
+        this.feedService.toggleReplies(postId); // sets showReplies → false
+      }
+    } else {
+      // Open: show input and load/show reply list
+      this.activeReplyPostId.set(postId);
+      this.replyContent.set('');
+      if (!post?.showReplies) {
+        this.feedService.toggleReplies(postId); // loads or sets showReplies → true
+      }
     }
-    this.replyContent.set('');
   }
 
   submitReply(postId: string): void {
@@ -196,6 +210,25 @@ export class FriendsPage implements OnInit, OnDestroy {
         this.activeReplyPostId.set(null);
       },
       error: () => this.isSendingReply.set(false),
+    });
+  }
+
+  // ── Reply delete ──
+  canDeleteReply(post: ActivityPost, reply: PostReply): boolean {
+    const uid = this.currentUserId();
+    if (!uid) return false;
+    // Post owner can delete any reply; reply author can delete their own
+    return post.author.user_id === uid || reply.author.user_id === uid;
+  }
+
+  readonly deletingReplyId = signal<string | null>(null);
+
+  deleteReply(postId: string, replyId: string): void {
+    if (this.deletingReplyId() === replyId) return;
+    this.deletingReplyId.set(replyId);
+    this.feedService.deleteReply(postId, replyId).subscribe({
+      next: () => this.deletingReplyId.set(null),
+      error: () => this.deletingReplyId.set(null),
     });
   }
 

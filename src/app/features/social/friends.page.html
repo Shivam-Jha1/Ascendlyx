@@ -245,6 +245,19 @@
                         <span class="reply-time">· {{ reply.time_ago }}</span>
                         <p class="reply-content">{{ reply.content }}</p>
                       </div>
+                      @if (canDeleteReply(post, reply)) {
+                        <button
+                          class="reply-delete-btn"
+                          [class.deleting]="deletingReplyId() === reply.id"
+                          [disabled]="deletingReplyId() === reply.id"
+                          (click)="deleteReply(post.id, reply.id)"
+                          aria-label="Delete reply"
+                          title="Delete reply"
+                        >
+                          @if (deletingReplyId() === reply.id) { <span class="mini-spinner"></span> }
+                          @else { 🗑 }
+                        </button>
+                      }
                     </div>
                   }
                 }

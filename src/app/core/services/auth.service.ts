@@ -105,6 +105,16 @@ export class AuthService {
     return raw ? JSON.parse(raw) : null;
   }
 
+  getCurrentUserId(): string | null {
+    const user = this.getCurrentUser();
+    if (user?.user_id) return user.user_id;
+    // Fallback: decode sub from the live access token
+    const token = this.getAccessToken();
+    if (!token) return null;
+    const payload = this.decodeJwt(token);
+    return payload?.user_id ?? payload?.sub ?? null;
+  }
+
   private storeTokens(tokens: AuthTokens): void {
     localStorage.setItem(STORAGE_KEYS.accessToken, tokens.access_token);
     localStorage.setItem(STORAGE_KEYS.refreshToken, tokens.refresh_token);
@@ -120,7 +130,12 @@ export class AuthService {
         'User';
       localStorage.setItem(
         STORAGE_KEYS.currentUser,
-        JSON.stringify({ name, email: payload.email ?? payload.sub ?? '', handle: payload.handle ?? '' })
+        JSON.stringify({
+          user_id: payload.user_id ?? payload.sub ?? '',
+          name,
+          email: payload.email ?? payload.sub ?? '',
+          handle: payload.handle ?? '',
+        })
       );
     }
     this.isAuthenticatedSignal.set(true);
