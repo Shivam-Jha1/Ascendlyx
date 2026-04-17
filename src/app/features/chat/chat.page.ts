@@ -11,7 +11,9 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { ChatService } from '../../core/services/chat.service';
+import { FeedService } from '../../core/services/feed.service';
 import { Conversation, Message } from '../../core/models/chat.model';
+import { FriendListItem } from '../../core/models/feed.model';
 
 @Component({
   selector: 'app-chat-page',
@@ -23,6 +25,7 @@ import { Conversation, Message } from '../../core/models/chat.model';
 })
 export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
   protected readonly chatService = inject(ChatService);
+  protected readonly feedService = inject(FeedService);
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('msgInput') private messageInputRef!: ElementRef<HTMLTextAreaElement>;
@@ -52,6 +55,42 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
     !!this.messageInput().trim() && !this.isAiReplying()
   );
 
+  readonly searchQuery = signal<string>('');
+
+  readonly filteredConversations = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return this.chatService.conversations();
+    return this.chatService.conversations().filter(c => {
+      const name = c.is_ai_coach
+        ? 'ai coach'
+        : c.other_participant.name.toLowerCase();
+      const preview = c.last_message?.content?.toLowerCase() ?? '';
+      return name.includes(q) || preview.includes(q);
+    });
+  });
+
+  readonly aiCoachConv = computed(() =>
+    this.filteredConversations().find(c => c.is_ai_coach) ?? null
+  );
+
+  readonly friendConversations = computed(() =>
+    this.filteredConversations().filter(c => !c.is_ai_coach)
+  );
+
+  readonly friendsWithoutConv = computed(() => {
+    const convUserIds = new Set(
+      this.chatService.conversations()
+        .filter(c => !c.is_ai_coach)
+        .map(c => c.other_participant.user_id)
+    );
+    const q = this.searchQuery().trim().toLowerCase();
+    return this.feedService.friends().filter((f: FriendListItem) => {
+      if (convUserIds.has(f.user_id)) return false;
+      if (!q) return true;
+      return f.name.toLowerCase().includes(q) || f.username.toLowerCase().includes(q);
+    });
+  });
+
   private shouldScrollToBottom = false;
   private lastMessageCount = 0;
   private typingDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -60,6 +99,7 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
     this.chatService.loadConversations();
     this.chatService.loadAiCoach();
     this.chatService.connectWebSocket();
+    this.feedService.loadFriends();
   }
 
   ngOnDestroy(): void {
@@ -184,6 +224,11 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
 
   trackByConvId(_: number, c: Conversation): string { return c.id; }
   trackByMsgId(_: number, m: Message): string { return m.id; }
+  trackByFriendId(_: number, f: FriendListItem): string { return f.user_id; }
+
+  startConversationByUsername(username: string): void {
+    this.chatService.startConversation(username);
+  }
 
   private scrollToBottom(): void {
     try {

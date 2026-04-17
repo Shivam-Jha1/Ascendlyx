@@ -251,6 +251,15 @@
   flex-shrink: 0;
 }
 
+.conv-section-label {
+  padding: 12px 14px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(136,146,164,0.55);
+  user-select: none;
+}
+
 .conv-empty {
   padding: 24px 12px;
   text-align: center;

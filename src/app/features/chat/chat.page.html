@@ -19,7 +19,8 @@
         class="conv-search"
         placeholder="Search messages..."
         aria-label="Search messages"
-        readonly
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
       />
     </div>
 
@@ -60,30 +61,19 @@
           </div>
         }
       } @else {
-        @for (conv of conversations(); track trackByConvId($index, conv)) {
+        <!-- AI Coach (pinned) -->
+        @if (aiCoachConv(); as conv) {
           <button
-            class="conv-row"
+            class="conv-row ai-coach"
             [class.active]="activeConversationId() === conv.id"
-            [class.ai-coach]="conv.is_ai_coach"
             (click)="selectConversation(conv)"
           >
             <div class="ci-av-wrap">
-              @if (conv.is_ai_coach) {
-                <div class="ci-av ai-av">🤖</div>
-              } @else {
-                <div class="ci-av" [style.background]="avatarColor(conv.other_participant.avatar_initial)">
-                  {{ conv.other_participant.avatar_initial }}
-                </div>
-              }
-              @if (!conv.is_ai_coach && conv.other_participant.is_online) {
-                <span class="ci-online"></span>
-              }
+              <div class="ci-av ai-av">🤖</div>
             </div>
             <div class="ci-body">
               <div class="ci-top">
-                <span class="ci-name">
-                  @if (conv.is_ai_coach) { AI Coach } @else { {{ conv.other_participant.name }} }
-                </span>
+                <span class="ci-name">AI Coach</span>
                 <span class="ci-time">{{ formatConvTime(conv.last_message_at) }}</span>
               </div>
               <div class="ci-bottom">
@@ -94,7 +84,7 @@
                     {{ conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content }}
                   </span>
                 } @else {
-                  <span class="ci-preview muted">No messages yet</span>
+                  <span class="ci-preview muted">Ask me anything!</span>
                 }
                 @if (conv.unread_count > 0) {
                   <span class="ci-badge">{{ conv.unread_count }}</span>
@@ -102,6 +92,69 @@
               </div>
             </div>
           </button>
+        }
+
+        <!-- Friends — sorted by most recent message, then friends with no conversation yet -->
+        @if (friendConversations().length > 0 || friendsWithoutConv().length > 0) {
+          <div class="conv-section-label">DIRECT MESSAGES</div>
+
+          @for (conv of friendConversations(); track trackByConvId($index, conv)) {
+            <button
+              class="conv-row"
+              [class.active]="activeConversationId() === conv.id"
+              (click)="selectConversation(conv)"
+            >
+              <div class="ci-av-wrap">
+                <div class="ci-av" [style.background]="avatarColor(conv.other_participant.avatar_initial)">
+                  {{ conv.other_participant.avatar_initial }}
+                </div>
+                @if (conv.other_participant.is_online) {
+                  <span class="ci-online"></span>
+                }
+              </div>
+              <div class="ci-body">
+                <div class="ci-top">
+                  <span class="ci-name">{{ conv.other_participant.name }}</span>
+                  <span class="ci-time">{{ formatConvTime(conv.last_message_at) }}</span>
+                </div>
+                <div class="ci-bottom">
+                  @if (conv.typingIndicator) {
+                    <span class="ci-typing">typing...</span>
+                  } @else if (conv.last_message) {
+                    <span class="ci-preview">
+                      {{ conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content }}
+                    </span>
+                  } @else {
+                    <span class="ci-preview muted">No messages yet</span>
+                  }
+                  @if (conv.unread_count > 0) {
+                    <span class="ci-badge">{{ conv.unread_count }}</span>
+                  }
+                </div>
+              </div>
+            </button>
+          }
+
+          @for (friend of friendsWithoutConv(); track trackByFriendId($index, friend)) {
+            <button
+              class="conv-row"
+              (click)="startConversationByUsername(friend.username)"
+            >
+              <div class="ci-av-wrap">
+                <div class="ci-av" [style.background]="avatarColor(friend.avatar_initial)">
+                  {{ friend.avatar_initial }}
+                </div>
+              </div>
+              <div class="ci-body">
+                <div class="ci-top">
+                  <span class="ci-name">{{ friend.name }}</span>
+                </div>
+                <div class="ci-bottom">
+                  <span class="ci-preview muted">No messages yet</span>
+                </div>
+              </div>
+            </button>
+          }
         }
 
         @if (!isLoadingConversations() && conversations().length === 0) {
