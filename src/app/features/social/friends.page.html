@@ -4,6 +4,7 @@
     <div class="search-bar">
       <span class="search-icon">🔍</span>
       <input
+        #searchInput
         type="text"
         class="search-input"
         placeholder="Find friends by username..."
@@ -63,7 +64,7 @@
           <span class="panel-title">My Friends</span>
           <span class="friends-count">· {{ friendsTotal() }}</span>
         </div>
-        <button class="btn-add" (click)="showCreatePost.set(false)">
+        <button class="btn-add" (click)="focusSearch()" title="Search for friends to add">
           + Add
         </button>
       </div>

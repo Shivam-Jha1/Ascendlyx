@@ -5,15 +5,17 @@ import {
   inject,
   signal,
   computed,
+  ViewChild,
+  ElementRef,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { FeedService } from '../../core/services/feed.service';
 import { AuthService } from '../../core/services/auth.service';
 import {
   ActivityPost,
   FriendListItem,
   FriendSearchResult,
+  FriendshipStatus,
   PostReply,
   ReactionType,
   REACTION_META,
@@ -22,7 +24,7 @@ import {
 @Component({
   selector: 'app-friends-page',
   standalone: true,
-  imports: [FormsModule],
+  imports: [],
   templateUrl: './friends.page.html',
   styleUrls: ['./friends.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,10 +33,10 @@ export class FriendsPage implements OnInit, OnDestroy {
   protected readonly feedService = inject(FeedService);
   private readonly authService = inject(AuthService);
 
-  // ── Current user id (for delete permission checks) ──
-  readonly currentUserId = computed<string | null>(() =>
-    this.authService.getCurrentUserId()
-  );
+  @ViewChild('searchInput') private searchInputRef!: ElementRef<HTMLInputElement>;
+
+  // ── Reactive current user id from AuthService signal ──
+  readonly currentUserId = this.authService.currentUserId;
 
   // ── Service signals (exposed to template) ──
   readonly posts = this.feedService.posts;
@@ -49,7 +51,6 @@ export class FriendsPage implements OnInit, OnDestroy {
 
   // ── Local UI state ──
   readonly searchQuery = signal<string>('');
-  readonly isSearching = signal<boolean>(false);
   readonly showCreatePost = signal<boolean>(false);
   readonly newPostContent = signal<string>('');
   readonly isCreatingPost = signal<boolean>(false);
@@ -76,20 +77,22 @@ export class FriendsPage implements OnInit, OnDestroy {
   }
 
   // ── Search ──
+  focusSearch(): void {
+    this.searchInputRef?.nativeElement?.focus();
+  }
+
   onSearchInput(value: string): void {
     this.searchQuery.set(value);
     if (value.length >= 2) {
-      this.isSearching.set(true);
       this.feedService.searchUsers(value);
-      setTimeout(() => this.isSearching.set(false), 300);
     } else {
-      this.feedService.searchResults.set([]);
+      this.feedService.clearSearchResults();
     }
   }
 
   clearSearch(): void {
     this.searchQuery.set('');
-    this.feedService.searchResults.set([]);
+    this.feedService.clearSearchResults();
   }
 
   handleFriendAction(user: FriendSearchResult): void {
@@ -105,11 +108,7 @@ export class FriendsPage implements OnInit, OnDestroy {
     this.feedService.sendFriendRequest(user.username).subscribe({
       next: () => {
         this.sendingRequestFor.set(null);
-        this.feedService.searchResults.update(prev =>
-          prev.map(u =>
-            u.user_id === user.user_id ? { ...u, friendship_status: 'pending_sent' as const } : u
-          )
-        );
+        this.feedService.updateSearchResultStatus(user.user_id, 'pending_sent' as FriendshipStatus);
       },
       error: () => this.sendingRequestFor.set(null),
     });
@@ -120,11 +119,7 @@ export class FriendsPage implements OnInit, OnDestroy {
     this.feedService.acceptFriendRequest(user.username).subscribe({
       next: () => {
         this.sendingRequestFor.set(null);
-        this.feedService.searchResults.update(prev =>
-          prev.map(u =>
-            u.user_id === user.user_id ? { ...u, friendship_status: 'accepted' as const } : u
-          )
-        );
+        this.feedService.updateSearchResultStatus(user.user_id, 'accepted' as FriendshipStatus);
         this.feedService.loadFriends();
       },
       error: () => this.sendingRequestFor.set(null),

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, tap, throwError } from 'rxjs';
+import { Observable, EMPTY, catchError, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ActivityPost,
@@ -8,6 +8,7 @@ import {
   FriendListResponse,
   FriendListItem,
   FriendSearchResult,
+  FriendshipStatus,
   ReactionRequest,
   ReactionType,
   PostCreatePayload,
@@ -215,10 +216,20 @@ export class FeedService {
         tap(results => this.searchResults.set(results)),
         catchError(() => {
           this.searchResults.set([]);
-          return [];
+          return EMPTY;
         })
       )
       .subscribe();
+  }
+
+  clearSearchResults(): void {
+    this.searchResults.set([]);
+  }
+
+  updateSearchResultStatus(userId: string, status: FriendshipStatus): void {
+    this.searchResults.update(prev =>
+      prev.map(u => u.user_id === userId ? { ...u, friendship_status: status } : u)
+    );
   }
 
   sendFriendRequest(username: string): Observable<unknown> {
@@ -242,7 +253,7 @@ export class FeedService {
       .replace(/^http/, 'ws')
       .replace('/api/v1', '') + '/api/v1/ws/feed';
 
-    this.ws = new WebSocket(`${wsUrl}?token=${token}`);
+    this.ws = new WebSocket(`${wsUrl}?token=${encodeURIComponent(token)}`);
 
     this.ws.onopen = (): void => {
       this.isLive.set(true);
@@ -262,6 +273,9 @@ export class FeedService {
 
     this.ws.onerror = (): void => {
       this.isLive.set(false);
+      const socket = this.ws;
+      this.ws = null;
+      socket?.close();
     };
   }
 
@@ -319,11 +333,9 @@ export class FeedService {
             return {
               ...p,
               reply_count: p.reply_count + 1,
-              // Only append to the visible list if replies are already expanded.
-              // If collapsed, just the count badge updates — no jarring auto-open.
-              replies: p.showReplies
-                ? [...(p.replies ?? []), event.reply!]
-                : (p.replies ?? []),
+              // Always keep cached replies in sync even when collapsed —
+              // so expanding later shows fresh data without a re-fetch.
+              replies: [...(p.replies ?? []), event.reply!],
             };
           })
         );

@@ -23,8 +23,12 @@ export class AuthService {
   private isAuthenticatedSignal = signal<boolean>(false);
   public isAuthenticated = this.isAuthenticatedSignal.asReadonly();
 
+  private readonly currentUserIdSignal = signal<string | null>(null);
+  public readonly currentUserId = this.currentUserIdSignal.asReadonly();
+
   constructor() {
     this.isAuthenticatedSignal.set(!!localStorage.getItem(STORAGE_KEYS.accessToken));
+    this.currentUserIdSignal.set(this.getCurrentUserId());
   }
 
   /** Step 1 of signup — request OTP */
@@ -139,6 +143,7 @@ export class AuthService {
       );
     }
     this.isAuthenticatedSignal.set(true);
+    this.currentUserIdSignal.set(this.getCurrentUserId());
   }
 
   private decodeJwt(token: string): any | null {
@@ -161,5 +166,6 @@ export class AuthService {
     localStorage.removeItem(STORAGE_KEYS.refreshToken);
     localStorage.removeItem(STORAGE_KEYS.currentUser);
     this.isAuthenticatedSignal.set(false);
+    this.currentUserIdSignal.set(null);
   }
 }
