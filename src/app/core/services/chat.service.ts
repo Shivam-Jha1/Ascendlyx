@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, NgZone, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { EMPTY, catchError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -23,6 +23,7 @@ function uuidv4(): string {
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly ngZone = inject(NgZone);
   private readonly base = environment.apiBaseUrl;
 
   // ── State signals ──
@@ -292,7 +293,10 @@ export class ChatService {
       this.startPing();
     };
     this.ws.onmessage = (ev: MessageEvent): void => {
-      try { this.handleWsEvent(JSON.parse(ev.data as string) as WsChatEvent); } catch { /* ignore */ }
+      try {
+        const event = JSON.parse(ev.data as string) as WsChatEvent;
+        this.ngZone.run(() => this.handleWsEvent(event));
+      } catch { /* ignore */ }
     };
     this.ws.onclose = (): void => {
       this.isLive.set(false);
@@ -332,19 +336,31 @@ export class ChatService {
         if (!event.conversation_id || !event.message) break;
         const msg = event.message;
         if (msg.is_mine) break; // self-echo guard
-        this.updateConvLastMessage(event.conversation_id, msg);
-        if (this.activeConversationId() === event.conversation_id) {
+
+        const convId = event.conversation_id;
+        const convKnown = this.conversations().some(c => c.id === convId);
+
+        if (!convKnown) {
+          // First-ever message in this conversation — fetch the full list so
+          // the new conversation appears with proper participant info.
+          this.loadConversations();
+        } else {
+          this.updateConvLastMessage(convId, msg);
+          if (this.activeConversationId() !== convId) {
+            this.conversations.update(prev =>
+              prev.map(c => c.id === convId
+                ? { ...c, unread_count: (c.unread_count ?? 0) + 1 }
+                : c
+              )
+            );
+          }
+        }
+
+        if (this.activeConversationId() === convId) {
           this.messages.update(prev =>
             prev.some(m => m.id === msg.id) ? prev : [...prev, msg]
           );
-          this.markRead(event.conversation_id);
-        } else {
-          this.conversations.update(prev =>
-            prev.map(c => c.id === event.conversation_id
-              ? { ...c, unread_count: (c.unread_count ?? 0) + 1 }
-              : c
-            )
-          );
+          this.markRead(convId);
         }
         break;
       }
