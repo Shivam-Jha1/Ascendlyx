@@ -97,9 +97,10 @@ All events are sent as JSON via the `/api/v1/ws/feed?token=<JWT>` WebSocket conn
 |------------|-------------|---------|---------|
 | `new_post` | Creating a post | All friends of the author | `{ type, post }` — full `ActivityPostResponse` |
 | `post_deleted` | Deleting a post | All friends of the author | `{ type, post_id }` |
-| `reaction_update` | Toggling a reaction | Post owner (if not self) | `{ type, post_id, reactor_id, reaction_type, reactions[] }` |
-| `new_reply` | Adding a reply | Post owner (if not self) | `{ type, post_id, reply }` — full `ReplyResponse` |
-| `reply_deleted` | Deleting a reply | Post owner (if not self) | `{ type, post_id, reply_id }` |
+| `reaction_update` | Toggling a reaction | Post owner + all their friends (excludes actor) | `{ type, post_id, reactor_id, reaction_type, reactions[] }` |
+| `new_reply` | Adding a reply | Post owner + all their friends (excludes actor) | `{ type, post_id, reply }` — full `ReplyResponse` |
+| `reply_deleted` | Deleting a reply | Post owner + all their friends (excludes actor) | `{ type, post_id, reply_id }` |
+
 
 ### Frontend Integration
 

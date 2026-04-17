@@ -36,6 +36,12 @@ export class FeedService {
 
   private page = 1;
   private ws: WebSocket | null = null;
+  // Tracks reply IDs added by *this* client so WS echo after backend
+  // broadcasts to all friends (once that change is made) doesn't duplicate.
+  private readonly locallyAddedReplies = new Set<string>();
+  // Tracks reply IDs deleted by *this* client so we can ignore
+  // the WS echo from the backend (prevents double-decrement).
+  private readonly locallyDeletedReplies = new Set<string>();
 
   // ── Feed ──
   loadFeed(reset = true): void {
@@ -128,6 +134,10 @@ export class FeedService {
   deleteReply(postId: string, replyId: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/posts/${postId}/replies/${replyId}`).pipe(
       tap(() => {
+        // Register as locally handled so the WS echo (if backend sends it
+        // back to us after updating to broadcast to both parties) is ignored.
+        this.locallyDeletedReplies.add(replyId);
+        setTimeout(() => this.locallyDeletedReplies.delete(replyId), 10_000);
         this.posts.update(prev =>
           prev.map(p =>
             p.id !== postId ? p : {
@@ -145,6 +155,9 @@ export class FeedService {
   addReply(postId: string, payload: ReplyCreatePayload): Observable<PostReply> {
     return this.http.post<PostReply>(`${this.base}/posts/${postId}/replies`, payload).pipe(
       tap(reply => {
+        // Register so WS echo (after backend broadcasts to all friends) is ignored.
+        this.locallyAddedReplies.add(reply.id);
+        setTimeout(() => this.locallyAddedReplies.delete(reply.id), 10_000);
         this.posts.update(prev =>
           prev.map(p =>
             p.id === postId
@@ -276,21 +289,41 @@ export class FeedService {
       case 'reaction_update': {
         if (!event.post_id || !event.reactions) break;
         this.posts.update(prev =>
-          prev.map(p => p.id === event.post_id ? { ...p, reactions: event.reactions! } : p)
+          prev.map(p => {
+            if (p.id !== event.post_id) return p;
+            // Merge server reaction counts with the viewer's local user_reacted state.
+            // The WS payload's user_reacted reflects the broadcaster, not each receiver,
+            // so we preserve local user_reacted and only take the authoritative counts.
+            const localReactions = p.reactions;
+            const merged = event.reactions!.map(serverR => {
+              const local = localReactions.find(lr => lr.reaction_type === serverR.reaction_type);
+              return { ...serverR, user_reacted: local?.user_reacted ?? serverR.user_reacted };
+            });
+            return { ...p, reactions: merged };
+          })
         );
         break;
       }
       case 'new_reply': {
         if (!event.post_id || !event.reply) break;
+        // Ignore self-echo: this client already applied the change via HTTP tap.
+        if (this.locallyAddedReplies.has(event.reply.id)) {
+          this.locallyAddedReplies.delete(event.reply.id);
+          break;
+        }
         this.posts.update(prev =>
           prev.map(p => {
             if (p.id !== event.post_id) return p;
             const alreadyHas = (p.replies ?? []).some(r => r.id === event.reply!.id);
-            return alreadyHas ? p : {
+            if (alreadyHas) return p;
+            return {
               ...p,
               reply_count: p.reply_count + 1,
-              replies: [...(p.replies ?? []), event.reply!],
-              showReplies: true,
+              // Only append to the visible list if replies are already expanded.
+              // If collapsed, just the count badge updates — no jarring auto-open.
+              replies: p.showReplies
+                ? [...(p.replies ?? []), event.reply!]
+                : (p.replies ?? []),
             };
           })
         );
@@ -298,17 +331,20 @@ export class FeedService {
       }
       case 'reply_deleted': {
         if (!event.post_id || !event.reply_id) break;
+        // Ignore self-echo: this client already applied the change via HTTP tap.
+        if (this.locallyDeletedReplies.has(event.reply_id)) {
+          this.locallyDeletedReplies.delete(event.reply_id);
+          break;
+        }
         this.posts.update(prev =>
           prev.map(p => {
             if (p.id !== event.post_id) return p;
-            const existingReplies = p.replies ?? [];
-            const wasLoaded = existingReplies.some(r => r.id === event.reply_id);
             return {
               ...p,
-              // Only decrement if we had this reply tracked; otherwise the
-              // reply_count from the next full fetch will correct itself.
-              reply_count: wasLoaded ? Math.max(0, p.reply_count - 1) : p.reply_count,
-              replies: existingReplies.filter(r => r.id !== event.reply_id),
+              // Always decrement — reply_count badge must stay accurate
+              // regardless of whether the replies section is expanded.
+              reply_count: Math.max(0, p.reply_count - 1),
+              replies: (p.replies ?? []).filter(r => r.id !== event.reply_id),
             };
           })
         );
