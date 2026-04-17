@@ -23,8 +23,12 @@ export class AuthService {
   private isAuthenticatedSignal = signal<boolean>(false);
   public isAuthenticated = this.isAuthenticatedSignal.asReadonly();
 
+  private readonly currentUserIdSignal = signal<string | null>(null);
+  public readonly currentUserId = this.currentUserIdSignal.asReadonly();
+
   constructor() {
     this.isAuthenticatedSignal.set(!!localStorage.getItem(STORAGE_KEYS.accessToken));
+    this.currentUserIdSignal.set(this.getCurrentUserId());
   }
 
   /** Step 1 of signup — request OTP */
@@ -105,6 +109,16 @@ export class AuthService {
     return raw ? JSON.parse(raw) : null;
   }
 
+  getCurrentUserId(): string | null {
+    const user = this.getCurrentUser();
+    if (user?.user_id) return user.user_id;
+    // Fallback: decode sub from the live access token
+    const token = this.getAccessToken();
+    if (!token) return null;
+    const payload = this.decodeJwt(token);
+    return payload?.user_id ?? payload?.sub ?? null;
+  }
+
   private storeTokens(tokens: AuthTokens): void {
     localStorage.setItem(STORAGE_KEYS.accessToken, tokens.access_token);
     localStorage.setItem(STORAGE_KEYS.refreshToken, tokens.refresh_token);
@@ -120,10 +134,16 @@ export class AuthService {
         'User';
       localStorage.setItem(
         STORAGE_KEYS.currentUser,
-        JSON.stringify({ name, email: payload.email ?? payload.sub ?? '', handle: payload.handle ?? '' })
+        JSON.stringify({
+          user_id: payload.user_id ?? payload.sub ?? '',
+          name,
+          email: payload.email ?? payload.sub ?? '',
+          handle: payload.handle ?? '',
+        })
       );
     }
     this.isAuthenticatedSignal.set(true);
+    this.currentUserIdSignal.set(this.getCurrentUserId());
   }
 
   private decodeJwt(token: string): any | null {
@@ -146,5 +166,6 @@ export class AuthService {
     localStorage.removeItem(STORAGE_KEYS.refreshToken);
     localStorage.removeItem(STORAGE_KEYS.currentUser);
     this.isAuthenticatedSignal.set(false);
+    this.currentUserIdSignal.set(null);
   }
 }
