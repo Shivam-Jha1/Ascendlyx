@@ -28,6 +28,14 @@
       </div>
     }
 
+    @if (!isLoading() && !settings()) {
+      <div class="settings-loading" role="alert">
+        <span>Unable to load settings right now.</span>
+        <button type="button" class="nav-item" (click)="loadSettings()">
+          Retry
+        </button>
+      </div>
+    }
     @if (!isLoading() && settings(); as s) {
 
       <!-- Appearance -->
