@@ -1,4 +1,347 @@
-<div class="chat-page">
-  <h2>Chat</h2>
-  <!-- Chat content placeholder -->
+<div class="chat-shell">
+
+  <!-- LEFT PANEL — Conversations -->
+  <aside class="conv-panel">
+    <div class="conv-header">
+      <h2 class="conv-title">Messages</h2>
+      <button class="btn-icon" (click)="showNewConv.set(!showNewConv())" title="New conversation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="conv-search-wrap">
+      <span class="conv-search-icon">🔍</span>
+      <input
+        type="text"
+        class="conv-search"
+        placeholder="Search messages..."
+        aria-label="Search messages"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </div>
+
+    @if (showNewConv()) {
+      <div class="new-conv-box">
+        <input
+          type="text"
+          class="new-conv-input"
+          placeholder="Username..."
+          [value]="newConvUsername()"
+          (input)="chatService.newConvUsername.set($any($event.target).value)"
+          (keydown.enter)="startNewConversation()"
+          autofocus
+          aria-label="Username to start conversation"
+        />
+        <button
+          class="btn-go"
+          [disabled]="!newConvUsername().trim() || isStartingConv()"
+          (click)="startNewConversation()"
+        >
+          @if (isStartingConv()) { <span class="mini-spin"></span> } @else { Start }
+        </button>
+        @if (startConvError()) {
+          <p class="new-conv-error">{{ startConvError() }}</p>
+        }
+      </div>
+    }
+
+    <div class="conv-list">
+      @if (isLoadingConversations()) {
+        @for (n of [1,2,3,4]; track n) {
+          <div class="conv-skel">
+            <div class="cs-av shimmer"></div>
+            <div class="cs-lines">
+              <div class="cs-l1 shimmer"></div>
+              <div class="cs-l2 shimmer"></div>
+            </div>
+          </div>
+        }
+      } @else {
+        <!-- AI Coach (pinned) -->
+        @if (aiCoachConv(); as conv) {
+          <button
+            class="conv-row ai-coach"
+            [class.active]="activeConversationId() === conv.id"
+            (click)="selectConversation(conv)"
+          >
+            <div class="ci-av-wrap">
+              <div class="ci-av ai-av">🤖</div>
+            </div>
+            <div class="ci-body">
+              <div class="ci-top">
+                <span class="ci-name">AI Coach</span>
+                <span class="ci-time">{{ formatConvTime(conv.last_message_at) }}</span>
+              </div>
+              <div class="ci-bottom">
+                @if (conv.typingIndicator) {
+                  <span class="ci-typing">typing...</span>
+                } @else if (conv.last_message) {
+                  <span class="ci-preview">
+                    {{ conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content }}
+                  </span>
+                } @else {
+                  <span class="ci-preview muted">Ask me anything!</span>
+                }
+                @if (conv.unread_count > 0) {
+                  <span class="ci-badge">{{ conv.unread_count }}</span>
+                }
+              </div>
+            </div>
+          </button>
+        }
+
+        <!-- Friends — sorted by most recent message, then friends with no conversation yet -->
+        @if (friendConversations().length > 0 || friendsWithoutConv().length > 0) {
+          <div class="conv-section-label">DIRECT MESSAGES</div>
+
+          @for (conv of friendConversations(); track trackByConvId($index, conv)) {
+            <button
+              class="conv-row"
+              [class.active]="activeConversationId() === conv.id"
+              (click)="selectConversation(conv)"
+            >
+              <div class="ci-av-wrap">
+                <div class="ci-av" [style.background]="avatarColor(conv.other_participant.avatar_initial)">
+                  {{ conv.other_participant.avatar_initial }}
+                </div>
+                @if (conv.other_participant.is_online) {
+                  <span class="ci-online"></span>
+                }
+              </div>
+              <div class="ci-body">
+                <div class="ci-top">
+                  <span class="ci-name">{{ conv.other_participant.name }}</span>
+                  <span class="ci-time">{{ formatConvTime(conv.last_message_at) }}</span>
+                </div>
+                <div class="ci-bottom">
+                  @if (conv.typingIndicator) {
+                    <span class="ci-typing">typing...</span>
+                  } @else if (conv.last_message) {
+                    <span class="ci-preview">
+                      {{ conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content }}
+                    </span>
+                  } @else {
+                    <span class="ci-preview muted">No messages yet</span>
+                  }
+                  @if (conv.unread_count > 0) {
+                    <span class="ci-badge">{{ conv.unread_count }}</span>
+                  }
+                </div>
+              </div>
+            </button>
+          }
+
+          @for (friend of friendsWithoutConv(); track trackByFriendId($index, friend)) {
+            <button
+              class="conv-row"
+              (click)="startConversationByUsername(friend.username)"
+            >
+              <div class="ci-av-wrap">
+                <div class="ci-av" [style.background]="avatarColor(friend.avatar_initial)">
+                  {{ friend.avatar_initial }}
+                </div>
+              </div>
+              <div class="ci-body">
+                <div class="ci-top">
+                  <span class="ci-name">{{ friend.name }}</span>
+                </div>
+                <div class="ci-bottom">
+                  <span class="ci-preview muted">No messages yet</span>
+                </div>
+              </div>
+            </button>
+          }
+        }
+
+        @if (!isLoadingConversations() && conversations().length === 0) {
+          <div class="conv-empty">
+            <p>No conversations yet</p>
+            <p>Tap the edit icon to start one</p>
+          </div>
+        }
+      }
+    </div>
+  </aside>
+
+  <!-- RIGHT PANEL — Chat -->
+  <main class="chat-main">
+
+    @if (!activeConversation()) {
+      <div class="chat-empty">
+        <div class="ce-icon">💬</div>
+        <p class="ce-title">Pick a conversation</p>
+        <p class="ce-sub">or start one with the edit button</p>
+      </div>
+
+    } @else {
+      <!-- Header -->
+      <div class="chat-head">
+        <div class="ch-left">
+          @if (activeConversation()!.is_ai_coach) {
+            <div class="ch-av ai-av-hd">🤖</div>
+          } @else {
+            <div class="ch-av"
+              [style.background]="avatarColor(activeConversation()!.other_participant.avatar_initial)">
+              {{ activeConversation()!.other_participant.avatar_initial }}
+            </div>
+          }
+          <div class="ch-info">
+            <span class="ch-name">
+              @if (activeConversation()!.is_ai_coach) { AI Coach }
+              @else { {{ activeConversation()!.other_participant.name }} }
+            </span>
+            @if (!activeConversation()!.is_ai_coach) {
+              <span class="ch-sub">
+                @if (activeConversation()!.other_participant.is_online) {
+                  <span class="dot green"></span> Online
+                  · 🔥 {{ activeConversation()!.other_participant.current_streak }} days
+                } @else {
+                  <span class="dot grey"></span> Offline
+                }
+              </span>
+            } @else {
+              <span class="ch-sub ai-sub">Powered by Claude · Always here</span>
+            }
+          </div>
+        </div>
+        <div class="ch-right">
+          @if (!activeConversation()!.is_ai_coach) {
+            <button class="ch-action-btn" title="Send Reminder">⏰</button>
+            <button class="ch-action-btn" title="Call">📞</button>
+            <button class="ch-action-btn" title="More">⋮</button>
+          }
+          <span class="live-dot" [class.on]="isLive()"></span>
+          <span class="live-lbl">{{ isLive() ? 'Live' : 'Connecting...' }}</span>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="msg-list" #messagesContainer (scroll)="onMessagesScroll($event)">
+
+        @if (isLoadingOlder()) {
+          <div class="older-spin"><div class="spin-ring sm"></div></div>
+        }
+        @if (hasMoreMessages() && !isLoadingOlder()) {
+          <button class="load-older" (click)="chatService.loadOlderMessages()">Load older messages</button>
+        }
+
+        @if (isLoadingMessages() && messages().length === 0) {
+          @for (n of [1,2,3,4,5]; track n) {
+            <div class="msg-skel" [class.mine]="n % 2 === 0">
+              @if (n % 2 !== 0) { <div class="sk-av shimmer"></div> }
+              <div class="sk-bub shimmer" [style.width.px]="90 + n * 28"></div>
+            </div>
+          }
+        }
+
+        @for (msg of messages(); track trackByMsgId($index, msg)) {
+          <div class="msg-row" [class.mine]="msg.is_mine" [class.theirs]="!msg.is_mine">
+
+            @if (!msg.is_mine) {
+              @if (activeConversation()!.is_ai_coach) {
+                <div class="msg-av ai-av-msg">🤖</div>
+              } @else {
+                <div class="msg-av"
+                  [style.background]="avatarColor(activeConversation()!.other_participant.avatar_initial)">
+                  {{ activeConversation()!.other_participant.avatar_initial }}
+                </div>
+              }
+            }
+
+            <div class="msg-col">
+              <div class="bubble"
+                [class.deleted]="msg.is_deleted"
+                [class.pending]="msg.pending"
+                [class.failed]="msg.failed"
+              >
+                @if (msg.is_deleted) {
+                  <em class="del-txt">This message was deleted</em>
+                } @else {
+                  {{ msg.content }}
+                }
+                @if (msg.is_mine && !msg.is_deleted && !msg.pending) {
+                  <button
+                    class="del-btn"
+                    [disabled]="deletingMsgId() === msg.id"
+                    (click)="deleteMessage(msg)"
+                    aria-label="Delete"
+                  >×</button>
+                }
+              </div>
+              <div class="msg-foot">
+                <span class="msg-ts">{{ formatTime(msg.created_at) }}</span>
+                @if (msg.is_mine && !msg.is_deleted) {
+                  @if (msg.pending) {
+                    <span class="st-ic muted">🕐</span>
+                  } @else if (msg.failed) {
+                    <span class="st-ic fail">!</span>
+                  } @else if (msg.read_by_other) {
+                    <span class="st-ic read">✓✓</span>
+                  } @else {
+                    <span class="st-ic sent">✓</span>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (activeConversation()!.typingIndicator || (activeConversation()!.is_ai_coach && isAiReplying())) {
+          <div class="msg-row theirs">
+            @if (activeConversation()!.is_ai_coach) {
+              <div class="msg-av ai-av-msg">🤖</div>
+            } @else {
+              <div class="msg-av"
+                [style.background]="avatarColor(activeConversation()!.other_participant.avatar_initial)">
+                {{ activeConversation()!.other_participant.avatar_initial }}
+              </div>
+            }
+            <div class="msg-col">
+              <div class="bubble typing-bub">
+                <span class="tdot"></span>
+                <span class="tdot"></span>
+                <span class="tdot"></span>
+              </div>
+              <span class="typing-lbl">Typing...</span>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- Input -->
+      <div class="input-bar">
+        <button class="act-btn" title="Voice message">🎤</button>
+        <textarea
+          #msgInput
+          class="txt-input"
+          rows="1"
+          [placeholder]="getPlaceholder()"
+          [value]="messageInput()"
+          (input)="onInputChange($any($event.target).value)"
+          (keydown)="onKeydown($event)"
+          [disabled]="isAiReplying()"
+          maxlength="1000"
+          aria-label="Message input"
+        ></textarea>
+        @if (!activeConversation()!.is_ai_coach) {
+          <button class="act-btn" title="Send Habit Reminder">⏰</button>
+        }
+        <button
+          class="send-btn"
+          [disabled]="!canSend()"
+          (click)="sendMessage()"
+          aria-label="Send"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+    }
+  </main>
 </div>
