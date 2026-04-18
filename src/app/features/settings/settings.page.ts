@@ -127,6 +127,10 @@ export class SettingsPage implements OnInit, OnDestroy {
     this.toastTimer = setTimeout(() => this.toastVisible.set(false), 3000);
   }
 
+  loadSettings(): void {
+    this.svc.loadSettings();
+  }
+
   // ── Appearance ─────────────────────────────────────────────────────────
   onAppearanceChange(patch: Partial<AppearanceSettings>): void {
     const prev = this.settings()?.appearance;
