@@ -58,6 +58,10 @@ export const routes: Routes = [
 			{
 				path: 'ai-insights',
 				loadComponent: () => import('./features/ai-insights/ai-insights.page').then(m => m.AiInsightsPage)
+			},
+			{
+				path: 'settings',
+				loadComponent: () => import('./features/settings/settings.page').then(m => m.SettingsPage)
 			}
 		]
 	},

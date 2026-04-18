@@ -1,0 +1,105 @@
+<div class="settings-layout">
+
+  <!-- ── Left sticky nav ── -->
+  <aside class="settings-nav" aria-label="Settings navigation">
+    <h2 class="settings-nav-title">Settings</h2>
+    <nav>
+      @for (section of navSections; track section.id) {
+        <button
+          class="nav-item"
+          [class.active]="activeSection() === section.id"
+          [class.danger]="section.danger"
+          (click)="scrollTo(section.id)"
+          [attr.aria-current]="activeSection() === section.id ? 'page' : null">
+          <i class="bi" [class]="section.icon"></i>
+          {{ section.label }}
+        </button>
+      }
+    </nav>
+  </aside>
+
+  <!-- ── Right scrollable content ── -->
+  <main class="settings-content" aria-live="polite">
+
+    @if (isLoading()) {
+      <div class="settings-loading">
+        <div class="spinner"></div>
+        <span>Loading settings…</span>
+      </div>
+    }
+
+    @if (!isLoading() && settings(); as s) {
+
+      <!-- Appearance -->
+      <div class="section-panel" id="appearance">
+        <app-appearance-section
+          [settings]="s.appearance"
+          (changed)="onAppearanceChange($event)" />
+      </div>
+
+      <!-- Notifications -->
+      <div class="section-panel" id="notifications">
+        <app-notifications-section
+          [settings]="s.notifications"
+          (changed)="onNotificationsChange($event)" />
+      </div>
+
+      <!-- Privacy -->
+      <div class="section-panel" id="privacy">
+        <app-privacy-section
+          [settings]="s.privacy"
+          (changed)="onPrivacyChange($event)"
+          (habitError)="onPrivacyError($event)" />
+      </div>
+
+      <!-- Security -->
+      <div class="section-panel" id="security">
+        <app-security-section
+          [security]="s.security"
+          [sessions]="activeSessions()"
+          (toggle2FA)="onToggle2FA($event)"
+          (loginNotifToggled)="onLoginNotifToggled($event)"
+          (revokeSession)="onRevokeSession($event)"
+          (revokeAll)="onRevokeAll()" />
+      </div>
+
+      <!-- Subscription -->
+      <div class="section-panel" id="subscription">
+        <app-subscription-section [subscription]="s.subscription" />
+      </div>
+
+      <!-- Delete Account -->
+      <div class="section-panel" id="delete">
+        <app-delete-account-section (openModal)="onDeleteRequested()" />
+      </div>
+
+    }<!-- end settings() -->
+
+  </main>
+
+  <!-- ── Toast notification ── -->
+  <div class="toast-wrapper" [class.show]="toastVisible()" role="status" aria-live="polite">
+    <span class="toast-icon">✓</span>
+    {{ toastMessage() }}
+  </div>
+
+</div>
+
+<!-- ── Modals ── -->
+@if (show2FASetup()) {
+  <app-two-factor-setup-modal
+    (closed)="show2FASetup.set(false)"
+    (enabled)="on2FAEnabled()" />
+}
+
+@if (show2FADisable()) {
+  <app-two-factor-disable-modal
+    (closed)="show2FADisable.set(false)"
+    (disabled)="on2FADisabled()" />
+}
+
+@if (showDeleteModal()) {
+  <app-delete-account-modal
+    [twoFaEnabled]="twoFaEnabled()"
+    (closed)="showDeleteModal.set(false)" />
+}
