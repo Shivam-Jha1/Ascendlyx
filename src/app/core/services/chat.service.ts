@@ -1,6 +1,6 @@
 import { Injectable, NgZone, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { EMPTY, catchError, tap } from 'rxjs';
+import { Observable, EMPTY, catchError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Conversation,
@@ -12,11 +12,7 @@ import {
 import { AuthService } from './auth.service';
 
 function uuidv4(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  return crypto.randomUUID();
 }
 
 @Injectable({ providedIn: 'root' })
@@ -80,11 +76,11 @@ export class ChatService {
     this.loadMessages(convId, true);
   }
 
-  startConversation(username: string): void {
-    if (!username.trim() || this.isStartingConv()) return;
+  startConversation(username: string): Observable<Conversation | never> {
+    if (!username.trim() || this.isStartingConv()) return EMPTY;
     this.isStartingConv.set(true);
     this.startConvError.set(null);
-    this.http.post<Conversation>(`${this.base}/conversations`, { other_username: username.trim() }).pipe(
+    return this.http.post<Conversation>(`${this.base}/conversations`, { other_username: username.trim() }).pipe(
       tap(conv => {
         this.isStartingConv.set(false);
         this.newConvUsername.set('');
@@ -99,7 +95,7 @@ export class ChatService {
         this.startConvError.set(this.extractMsg(err));
         return EMPTY;
       })
-    ).subscribe();
+    );
   }
 
   // ── Messages ──
@@ -178,8 +174,8 @@ export class ChatService {
     ).subscribe();
   }
 
-  deleteMessage(convId: string, msgId: string): void {
-    this.http.delete<void>(`${this.base}/conversations/${convId}/messages/${msgId}`).pipe(
+  deleteMessage(convId: string, msgId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/conversations/${convId}/messages/${msgId}`).pipe(
       tap(() => {
         this.messages.update(prev =>
           prev.map(m => m.id === msgId
@@ -187,9 +183,14 @@ export class ChatService {
             : m
           )
         );
+        // Update conversation preview if deleted message was the last one shown
+        const conv = this.conversations().find(c => c.id === convId);
+        if (conv?.last_message && conv.last_message.sent_at === this.messages().find(m => m.id === msgId)?.created_at) {
+          this.loadConversations();
+        }
       }),
       catchError(() => EMPTY)
-    ).subscribe();
+    );
   }
 
   markRead(convId: string): void {
@@ -275,6 +276,9 @@ export class ChatService {
     this.shouldReconnect = false;
     this.stopPing();
     if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+    // Clear all pending typing indicator timeouts
+    this.typingTimers.forEach(timer => clearTimeout(timer));
+    this.typingTimers.clear();
     this.ws?.close();
     this.ws = null;
     this.isLive.set(false);
@@ -366,12 +370,20 @@ export class ChatService {
       }
       case 'message_deleted': {
         if (!event.message_id) break;
+        const deletedMsg = this.messages().find(m => m.id === event.message_id);
         this.messages.update(prev =>
           prev.map(m => m.id === event.message_id
             ? { ...m, is_deleted: true, content: 'This message was deleted' }
             : m
           )
         );
+        // Refresh conversation list if the deleted message was the latest preview
+        if (deletedMsg && event.conversation_id) {
+          const conv = this.conversations().find(c => c.id === event.conversation_id);
+          if (conv?.last_message?.sent_at === deletedMsg.created_at) {
+            this.loadConversations();
+          }
+        }
         break;
       }
       case 'messages_read': {

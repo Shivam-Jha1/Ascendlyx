@@ -28,7 +28,6 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
   protected readonly feedService = inject(FeedService);
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild('msgInput') private messageInputRef!: ElementRef<HTMLTextAreaElement>;
 
   // ── Local UI state ──
   readonly messageInput = signal<string>('');
@@ -109,11 +108,11 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
 
   ngAfterViewChecked(): void {
     const currentCount = this.messages().length;
-    if (this.shouldScrollToBottom || currentCount !== this.lastMessageCount) {
+    if (this.shouldScrollToBottom) {
       this.scrollToBottom();
-      this.lastMessageCount = currentCount;
       this.shouldScrollToBottom = false;
     }
+    this.lastMessageCount = currentCount;
   }
 
   // ── Conversation actions ──
@@ -125,10 +124,11 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
 
   startNewConversation(): void {
     const username = this.newConvUsername().trim();
-    if (!username) return;
+    if (!username || this.isStartingConv()) return;
     this.shouldScrollToBottom = true;
-    this.chatService.startConversation(username);
-    this.showNewConv.set(false);
+    this.chatService.startConversation(username).subscribe({
+      next: () => this.showNewConv.set(false),
+    });
   }
 
   // ── Message actions ──
@@ -136,7 +136,7 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
     this.messageInput.set(value);
     const convId = this.activeConversationId();
     if (!convId) return;
-    // Debounce typing event: send every 2s max
+    // Debounce typing event: send every 500ms max
     if (this.typingDebounce) clearTimeout(this.typingDebounce);
     this.typingDebounce = setTimeout(() => {
       this.chatService.sendTyping(convId);
@@ -171,8 +171,10 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
     const conv = this.activeConversation();
     if (!conv) return;
     this.deletingMsgId.set(msg.id);
-    this.chatService.deleteMessage(conv.id, msg.id);
-    setTimeout(() => this.deletingMsgId.set(null), 1000);
+    this.chatService.deleteMessage(conv.id, msg.id).subscribe({
+      next: () => this.deletingMsgId.set(null),
+      error: () => this.deletingMsgId.set(null),
+    });
   }
 
   // ── Infinite scroll ──
@@ -227,7 +229,7 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
   trackByFriendId(_: number, f: FriendListItem): string { return f.user_id; }
 
   startConversationByUsername(username: string): void {
-    this.chatService.startConversation(username);
+    this.chatService.startConversation(username).subscribe();
   }
 
   private scrollToBottom(): void {
