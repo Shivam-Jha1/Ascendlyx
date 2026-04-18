@@ -24,7 +24,7 @@ const ROWS: NotifRow[] = [
   imports: [ToggleSwitchComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="settings-section" id="notifications">
+    <section class="settings-section">
       <h3 class="section-title">🔔 Notifications</h3>
       <div class="section-divider"></div>
 

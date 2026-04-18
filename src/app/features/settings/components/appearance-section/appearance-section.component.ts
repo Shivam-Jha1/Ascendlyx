@@ -8,7 +8,7 @@ import { AppearanceSettings, Theme } from '../../../../core/models/settings.mode
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="settings-section" id="appearance">
+    <section class="settings-section">
       <h3 class="section-title">🎨 Appearance</h3>
       <div class="section-divider"></div>
 

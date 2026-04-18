@@ -19,7 +19,7 @@ import { SettingsService } from '../../../../core/services/settings.service';
     ]),
   ],
   template: `
-    <section class="settings-section" id="privacy">
+    <section class="settings-section">
       <h3 class="section-title">🔒 Privacy</h3>
       <div class="section-divider"></div>
 
@@ -152,10 +152,15 @@ export class PrivacySectionComponent implements OnInit {
   private fetchHabits(): void {
     this.loadingHabits.set(true);
     this.habitsLoaded = true;
-    // Load from the settings service (habit privacy list)
-    // In lieu of a dedicated endpoint, we use the daily log / goals habits in page
-    // The habit list for privacy uses the same GET /settings call's context.
-    // We provide a stub — the page container can inject habit data via settings.
-    this.loadingHabits.set(false);
+    this.settingsService.getHabitPrivacyList().subscribe({
+      next: list => {
+        this.habits.set(list);
+        this.loadingHabits.set(false);
+      },
+      error: (err: string) => {
+        this.loadingHabits.set(false);
+        this.habitError.emit(err || 'Failed to load habits');
+      }
+    });
   }
 }

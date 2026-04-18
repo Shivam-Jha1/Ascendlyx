@@ -1,8 +1,9 @@
 import {
-  Component, ChangeDetectionStrategy, output, inject, signal, input
+  Component, ChangeDetectionStrategy, output, inject, signal, input, OnDestroy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
 import { SettingsService } from '../../../../core/services/settings.service';
 
 const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
@@ -15,7 +16,7 @@ const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
   template: `
     <div class="modal-backdrop" role="dialog" aria-modal="true" (click)="onBackdropClick($event)">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <button class="modal-close" aria-label="Close modal" (click)="closed.emit()">✕</button>
+        <button class="modal-close" aria-label="Close modal" (click)="onClose()">✕</button>
 
         <!-- Step indicator -->
         <div class="steps">
@@ -42,7 +43,7 @@ const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
             </ul>
             <p class="grace-note">You have 30 days to cancel this request.</p>
             <div class="modal-actions">
-              <button class="btn-cancel" (click)="closed.emit()">Cancel</button>
+              <button class="btn-cancel" (click)="onClose()">Cancel</button>
               <button class="btn-danger-outline" (click)="step.set(2)">I understand, continue</button>
             </div>
           </div>
@@ -189,9 +190,11 @@ const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
     .redirect-note { font-size:.78rem; color:var(--text-muted); }
   `],
 })
-export class DeleteAccountModalComponent {
+export class DeleteAccountModalComponent implements OnDestroy {
   private readonly settingsService = inject(SettingsService);
-  private readonly router = inject(Router);
+  private readonly authService     = inject(AuthService);
+  private readonly router          = inject(Router);
+  private redirectTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly closed  = output<void>();
   readonly twoFaEnabled = input<boolean>(false);
@@ -206,6 +209,15 @@ export class DeleteAccountModalComponent {
 
   readonly PHRASE = CONFIRM_PHRASE;
   readonly stepLabels = ['Warning', 'Verify', 'Confirm'];
+
+  ngOnDestroy(): void {
+    if (this.redirectTimer) clearTimeout(this.redirectTimer);
+  }
+
+  onClose(): void {
+    if (this.redirectTimer) clearTimeout(this.redirectTimer);
+    this.closed.emit();
+  }
 
   canProceedStep2(): boolean {
     return !!this.password() && (!this.twoFaEnabled() || this.totpCode().length === 6);
@@ -226,7 +238,8 @@ export class DeleteAccountModalComponent {
         this.deleting.set(false);
         this.deletionDate.set(new Date(res.deletion_date).toLocaleDateString(undefined, { dateStyle: 'long' }));
         this.step.set(4);
-        setTimeout(() => this.router.navigate(['/login']), 3000);
+        this.authService.logoutLocally();
+        this.redirectTimer = setTimeout(() => this.router.navigate(['/login']), 3000);
       },
       error: (err: string) => {
         this.deleting.set(false);
@@ -236,6 +249,6 @@ export class DeleteAccountModalComponent {
   }
 
   onBackdropClick(e: MouseEvent): void {
-    if ((e.target as HTMLElement).classList.contains('modal-backdrop')) this.closed.emit();
+    if ((e.target as HTMLElement).classList.contains('modal-backdrop')) this.onClose();
   }
 }

@@ -11,7 +11,7 @@
           [class.danger]="section.danger"
           (click)="scrollTo(section.id)"
           [attr.aria-current]="activeSection() === section.id ? 'page' : null">
-          <i class="bi" [class]="section.icon"></i>
+          <i [class]="'bi ' + section.icon"></i>
           {{ section.label }}
         </button>
       }
@@ -60,7 +60,8 @@
           (toggle2FA)="onToggle2FA($event)"
           (loginNotifToggled)="onLoginNotifToggled($event)"
           (revokeSession)="onRevokeSession($event)"
-          (revokeAll)="onRevokeAll()" />
+          (revokeAll)="onRevokeAll()"
+          (manageSessions)="onManageSessions()" />
       </div>
 
       <!-- Subscription -->

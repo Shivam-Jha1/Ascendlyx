@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, EMPTY, catchError, tap } from 'rxjs';
+import { Observable, EMPTY, catchError, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   FullSettings,
@@ -58,7 +58,7 @@ export class SettingsService {
         if (data.theme)        this.applyTheme(updated.theme);
         if (data.accent_color) this.applyAccentColor(updated.accent_color);
       }),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
@@ -66,7 +66,7 @@ export class SettingsService {
   updateNotifications(data: Partial<NotificationSettings>): Observable<NotificationSettings> {
     return this.http.patch<NotificationSettings>(`${this.base}/notifications`, data).pipe(
       tap(updated => this.settings.update(s => s ? { ...s, notifications: updated } : s)),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
@@ -74,13 +74,19 @@ export class SettingsService {
   updatePrivacy(data: Partial<PrivacySettings>): Observable<PrivacySettings> {
     return this.http.patch<PrivacySettings>(`${this.base}/privacy`, data).pipe(
       tap(updated => this.settings.update(s => s ? { ...s, privacy: updated } : s)),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
   updateHabitPrivacy(habitId: string, isHidden: boolean): Observable<void> {
     return this.http.patch<void>(`${this.base}/privacy/habits`, { habit_id: habitId, is_hidden: isHidden }).pipe(
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
+    );
+  }
+
+  getHabitPrivacyList(): Observable<import('../models/settings.model').HabitPrivacyItem[]> {
+    return this.http.get<import('../models/settings.model').HabitPrivacyItem[]>(`${this.base}/privacy/habits`).pipe(
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
@@ -95,21 +101,21 @@ export class SettingsService {
   revokeSession(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/sessions/${id}`).pipe(
       tap(() => this.activeSessions.update(list => list.filter(s => s.id !== id))),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
   revokeAllOtherSessions(): Observable<void> {
     return this.http.delete<void>(`${this.base}/sessions`).pipe(
       tap(() => this.activeSessions.update(list => list.filter(s => s.is_current))),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
   // ── 2FA ───────────────────────────────────────────────────────────────
   setup2FA(): Observable<TwoFactorSetupData> {
     return this.http.post<TwoFactorSetupData>(`${this.base}/2fa/setup`, {}).pipe(
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
@@ -118,7 +124,7 @@ export class SettingsService {
       tap(() => this.settings.update(s =>
         s ? { ...s, security: { ...s.security, two_fa_enabled: true } } : s
       )),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
@@ -127,7 +133,7 @@ export class SettingsService {
       tap(() => this.settings.update(s =>
         s ? { ...s, security: { ...s.security, two_fa_enabled: false } } : s
       )),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
@@ -136,13 +142,13 @@ export class SettingsService {
     return this.http.delete<{ message: string; deletion_date: string; grace_period_days: number }>(
       `${environment.apiBaseUrl}/account`, { body: payload }
     ).pipe(
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
   cancelDeletion(): Observable<void> {
     return this.http.post<void>(`${environment.apiBaseUrl}/account/cancel-deletion`, {}).pipe(
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
@@ -151,13 +157,14 @@ export class SettingsService {
       tap(() => this.settings.update(s =>
         s ? { ...s, security: { ...s.security, login_notifications_enabled: enabled } } : s
       )),
-      catchError((err: HttpErrorResponse) => { throw this.msg(err); })
+      catchError((err: HttpErrorResponse) => throwError(() => this.msg(err)))
     );
   }
 
   // ── Theme application (immediate, no reload) ──────────────────────────
   applyTheme(theme: Theme): void {
     document.body.classList.toggle('theme-light', theme === 'light');
+    document.documentElement.setAttribute('data-theme', theme);
   }
 
   applyAccentColor(color: AccentColor): void {

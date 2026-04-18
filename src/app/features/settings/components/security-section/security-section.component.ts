@@ -10,7 +10,7 @@ import { SecuritySummary, ActiveSession } from '../../../../core/models/settings
   imports: [ToggleSwitchComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="settings-section" id="security">
+    <section class="settings-section">
       <h3 class="section-title">🛡️ Account Security</h3>
       <div class="section-divider"></div>
 

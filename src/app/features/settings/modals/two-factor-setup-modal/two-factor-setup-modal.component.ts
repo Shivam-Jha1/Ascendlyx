@@ -34,7 +34,11 @@ import { TwoFactorSetupData } from '../../../../core/models/settings.model';
               <div class="loading-spin">Loading…</div>
             } @else if (setupData()) {
               <p class="modal-sub">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
-              <img class="qr-img" [src]="qrDataUrl()" alt="2FA QR code" />
+              @if (qrDataUrl()) {
+                <img class="qr-img" [src]="qrDataUrl()" alt="2FA QR code" />
+              } @else {
+                <div class="loading-spin">Generating QR code…</div>
+              }
               <div class="secret-row">
                 <code class="secret-text">{{ setupData()!.secret }}</code>
                 <button class="btn-copy" (click)="copySecret()">{{ copied() ? '✓ Copied' : 'Copy' }}</button>
@@ -194,23 +198,36 @@ export class TwoFactorSetupModalComponent implements OnInit {
   }
 
   copySecret(): void {
-    navigator.clipboard.writeText(this.setupData()!.secret);
-    this.copied.set(true);
-    setTimeout(() => this.copied.set(false), 2000);
+    navigator.clipboard.writeText(this.setupData()!.secret).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    }).catch(() => {
+      // clipboard unavailable – user must copy manually
+    });
   }
 
   copyAll(): void {
-    navigator.clipboard.writeText(this.setupData()!.backup_codes.join('\n'));
-    this.copiedAll.set(true);
-    setTimeout(() => this.copiedAll.set(false), 2000);
+    navigator.clipboard.writeText(this.setupData()!.backup_codes.join('\n')).then(() => {
+      this.copiedAll.set(true);
+      setTimeout(() => this.copiedAll.set(false), 2000);
+    }).catch(() => {
+      // clipboard unavailable – user must copy manually
+    });
   }
 
   downloadCodes(): void {
     const text = this.setupData()!.backup_codes.join('\n');
+    const objectUrl = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+    a.href = objectUrl;
     a.download = 'ascendlyx-backup-codes.txt';
-    a.click();
+    document.body.appendChild(a);
+    try {
+      a.click();
+    } finally {
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    }
   }
 
   done(): void {

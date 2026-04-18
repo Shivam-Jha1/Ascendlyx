@@ -7,7 +7,7 @@ import {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="settings-section" id="delete-account">
+    <section class="settings-section">
       <h3 class="section-title danger-title">🗑️ Delete Account</h3>
       <div class="section-divider"></div>
 

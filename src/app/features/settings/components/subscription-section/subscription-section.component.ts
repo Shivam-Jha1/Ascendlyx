@@ -22,7 +22,7 @@ const PRO_FEATURES = [
   imports: [TitleCasePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="settings-section" id="subscription">
+    <section class="settings-section">
       <h3 class="section-title">💳 Subscription</h3>
       <div class="section-divider"></div>
 

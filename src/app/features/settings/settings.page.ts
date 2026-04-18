@@ -2,11 +2,9 @@ import {
   Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject, signal, computed, PLATFORM_ID
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
 import { SettingsService } from '../../core/services/settings.service';
 import {
   AppearanceSettings, NotificationSettings, PrivacySettings,
-  FullSettings
 } from '../../core/models/settings.model';
 
 import { AppearanceSectionComponent }  from './components/appearance-section/appearance-section.component';
@@ -55,7 +53,6 @@ const NAV_SECTIONS: NavSection[] = [
 })
 export class SettingsPage implements OnInit, OnDestroy {
   private readonly svc    = inject(SettingsService);
-  private readonly router = inject(Router);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   // ── service state ──────────────────────────────────────────────────────
@@ -140,6 +137,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       next: () => this.toast('Appearance saved'),
       error: (err: string) => {
         this.svc.settings.update(s => s ? { ...s, appearance: prev } : s);
+        if (prev.theme) this.svc.applyTheme(prev.theme);
         this.toast(err || 'Failed to save appearance');
       }
     });
@@ -222,6 +220,10 @@ export class SettingsPage implements OnInit, OnDestroy {
       next: () => this.toast('All other sessions revoked'),
       error: (err: string) => this.toast(err || 'Could not revoke sessions'),
     });
+  }
+
+  onManageSessions(): void {
+    this.svc.getSessions();
   }
 
   // ── Delete Account ─────────────────────────────────────────────────────
