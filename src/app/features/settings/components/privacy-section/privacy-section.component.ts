@@ -2,7 +2,7 @@ import {
   Component, ChangeDetectionStrategy, input, output, signal, OnInit, inject
 } from '@angular/core';
 import { animate, style, transition, trigger, state } from '@angular/animations';
-import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
+import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch';
 import { PrivacySettings, HabitPrivacyItem } from '../../../../core/models/settings.model';
 import { SettingsService } from '../../../../core/services/settings.service';
 
@@ -151,13 +151,14 @@ export class PrivacySectionComponent implements OnInit {
 
   private fetchHabits(): void {
     this.loadingHabits.set(true);
-    this.habitsLoaded = true;
     this.settingsService.getHabitPrivacyList().subscribe({
       next: list => {
         this.habits.set(list);
+        this.habitsLoaded = true;
         this.loadingHabits.set(false);
       },
       error: (err: string) => {
+        this.habitsLoaded = false;
         this.loadingHabits.set(false);
         this.habitError.emit(err || 'Failed to load habits');
       }

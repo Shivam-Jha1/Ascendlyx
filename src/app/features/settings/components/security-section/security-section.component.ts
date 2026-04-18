@@ -1,7 +1,7 @@
 import {
   Component, ChangeDetectionStrategy, input, output, signal
 } from '@angular/core';
-import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
+import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch';
 import { SecuritySummary, ActiveSession } from '../../../../core/models/settings.model';
 
 @Component({
@@ -150,6 +150,7 @@ export class SecuritySectionComponent {
   toggleSessions(): void {
     const opening = !this.sessionsOpen();
     this.sessionsOpen.set(opening);
+    if (!opening) this.confirmRevokeId.set(null);
     if (opening) this.manageSessions.emit();
   }
 

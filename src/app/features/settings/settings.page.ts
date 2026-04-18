@@ -74,6 +74,7 @@ export class SettingsPage implements OnInit, OnDestroy {
   readonly activeSection  = signal<string>('appearance');
   readonly navSections    = NAV_SECTIONS;
   private observers: IntersectionObserver[] = [];
+  private scrollSpyTimer: ReturnType<typeof setTimeout> | null = null;
 
   // ── derived ────────────────────────────────────────────────────────────
   readonly twoFaEnabled = computed(() => this.settings()?.security.two_fa_enabled ?? false);
@@ -81,13 +82,13 @@ export class SettingsPage implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════════════════════════════
   ngOnInit(): void {
     this.svc.loadSettings();
-    this.svc.getSessions();
     if (this.isBrowser) this.initScrollSpy();
   }
 
   ngOnDestroy(): void {
     this.observers.forEach(o => o.disconnect());
     if (this.toastTimer) clearTimeout(this.toastTimer);
+    if (this.scrollSpyTimer) clearTimeout(this.scrollSpyTimer);
   }
 
   // ── Scroll spy ─────────────────────────────────────────────────────────
@@ -105,8 +106,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       { rootMargin: '-20% 0px -65% 0px', threshold: 0 }
     );
     this.observers.push(obs);
-    // Attach after a tick so DOM is rendered
-    setTimeout(() => {
+    this.scrollSpyTimer = setTimeout(() => {
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) obs.observe(el);
@@ -192,7 +192,9 @@ export class SettingsPage implements OnInit, OnDestroy {
 
   // ── Security: Login notifications ──────────────────────────────────────
   onLoginNotifToggled(enabled: boolean): void {
-    const prev = this.settings()?.security.login_notifications_enabled;
+    const security = this.settings()?.security;
+    if (!security) return;
+    const prev = security.login_notifications_enabled;
     this.svc.settings.update(s =>
       s ? { ...s, security: { ...s.security, login_notifications_enabled: enabled } } : s
     );
@@ -200,7 +202,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       next: () => this.toast('Login notifications updated'),
       error: (err: string) => {
         this.svc.settings.update(s =>
-          s ? { ...s, security: { ...s.security, login_notifications_enabled: prev! } } : s
+          s ? { ...s, security: { ...s.security, login_notifications_enabled: prev } } : s
         );
         this.toast(err || 'Failed to update');
       }

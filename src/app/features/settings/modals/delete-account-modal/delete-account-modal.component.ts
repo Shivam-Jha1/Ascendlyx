@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, output, inject, signal, input, OnDestroy
+  Component, ChangeDetectionStrategy, output, inject, signal, input, OnDestroy, OnInit, ElementRef, HostListener
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -109,7 +109,7 @@ const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
                 class="field-input"
                 placeholder="DELETE MY ACCOUNT"
                 autofocus
-                aria-describedby="del-err"
+                [attr.aria-describedby]="error() ? 'del-err' : null"
                 [ngModel]="confirmPhrase()"
                 (ngModelChange)="confirmPhrase.set($event)" />
             </div>
@@ -190,11 +190,16 @@ const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
     .redirect-note { font-size:.78rem; color:var(--text-muted); }
   `],
 })
-export class DeleteAccountModalComponent implements OnDestroy {
+export class DeleteAccountModalComponent implements OnInit, OnDestroy {
   private readonly settingsService = inject(SettingsService);
   private readonly authService     = inject(AuthService);
   private readonly router          = inject(Router);
+  private readonly el              = inject(ElementRef<HTMLElement>);
+  private previousFocus: HTMLElement | null = null;
   private redirectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void { if (this.step() !== 4) this.onClose(); }
 
   readonly closed  = output<void>();
   readonly twoFaEnabled = input<boolean>(false);
@@ -210,12 +215,19 @@ export class DeleteAccountModalComponent implements OnDestroy {
   readonly PHRASE = CONFIRM_PHRASE;
   readonly stepLabels = ['Warning', 'Verify', 'Confirm'];
 
+  ngOnInit(): void {
+    this.previousFocus = document.activeElement as HTMLElement;
+    const firstFocusable = this.el.nativeElement.querySelector('button, input') as HTMLElement | null;
+    firstFocusable?.focus();
+  }
+
   ngOnDestroy(): void {
     if (this.redirectTimer) clearTimeout(this.redirectTimer);
   }
 
   onClose(): void {
     if (this.redirectTimer) clearTimeout(this.redirectTimer);
+    this.previousFocus?.focus();
     this.closed.emit();
   }
 

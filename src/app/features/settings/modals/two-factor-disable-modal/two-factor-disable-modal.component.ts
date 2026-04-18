@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, output, inject, signal
+  Component, ChangeDetectionStrategy, output, inject, signal, ElementRef, HostListener, OnInit
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SettingsService } from '../../../../core/services/settings.service';
@@ -24,7 +24,7 @@ import { SettingsService } from '../../../../core/services/settings.service';
             class="field-input"
             placeholder="Your password"
             autocomplete="current-password"
-            aria-describedby="dis-err"
+            [attr.aria-describedby]="error() ? 'dis-err' : null"
             [ngModel]="password()"
             (ngModelChange)="password.set($event)" />
         </div>
@@ -88,8 +88,13 @@ import { SettingsService } from '../../../../core/services/settings.service';
     .btn-disable:disabled { opacity:.5; cursor:not-allowed; }
   `],
 })
-export class TwoFactorDisableModalComponent {
+export class TwoFactorDisableModalComponent implements OnInit {
   private readonly settingsService = inject(SettingsService);
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private previousFocus: HTMLElement | null = null;
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void { this.closed.emit(); }
 
   readonly closed   = output<void>();
   readonly disabled = output<void>();
@@ -99,11 +104,17 @@ export class TwoFactorDisableModalComponent {
   readonly saving    = signal<boolean>(false);
   readonly error     = signal<string | null>(null);
 
+  ngOnInit(): void {
+    this.previousFocus = document.activeElement as HTMLElement;
+    const firstInput = this.el.nativeElement.querySelector('input, button') as HTMLElement | null;
+    firstInput?.focus();
+  }
+
   disable(): void {
     this.saving.set(true);
     this.error.set(null);
     this.settingsService.disable2FA(this.password(), this.totpCode()).subscribe({
-      next: () => { this.saving.set(false); this.disabled.emit(); this.closed.emit(); },
+      next: () => { this.saving.set(false); this.disabled.emit(); this.previousFocus?.focus(); this.closed.emit(); },
       error: (err: string) => { this.saving.set(false); this.error.set(err); }
     });
   }

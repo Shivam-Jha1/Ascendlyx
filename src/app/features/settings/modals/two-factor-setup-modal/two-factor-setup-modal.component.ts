@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, output, inject, signal, OnInit
+  Component, ChangeDetectionStrategy, output, inject, signal, OnInit, ElementRef, HostListener
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SettingsService } from '../../../../core/services/settings.service';
@@ -36,6 +36,8 @@ import { TwoFactorSetupData } from '../../../../core/models/settings.model';
               <p class="modal-sub">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
               @if (qrDataUrl()) {
                 <img class="qr-img" [src]="qrDataUrl()" alt="2FA QR code" />
+              } @else if (qrError()) {
+                <p class="inline-err">Could not generate QR code. Enter the secret key manually in your authenticator app.</p>
               } @else {
                 <div class="loading-spin">Generating QR code…</div>
               }
@@ -139,6 +141,11 @@ import { TwoFactorSetupData } from '../../../../core/models/settings.model';
 })
 export class TwoFactorSetupModalComponent implements OnInit {
   private readonly settingsService = inject(SettingsService);
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private previousFocus: HTMLElement | null = null;
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void { this.closed.emit(); }
 
   readonly closed  = output<void>();
   readonly enabled = output<void>();
@@ -148,6 +155,7 @@ export class TwoFactorSetupModalComponent implements OnInit {
   readonly loadError = signal<string | null>(null);
   readonly setupData = signal<TwoFactorSetupData | null>(null);
   readonly qrDataUrl = signal<string>('');
+  readonly qrError   = signal<boolean>(false);
   readonly totpCode  = signal<string>('');
   readonly verifying = signal<boolean>(false);
   readonly verifyError = signal<string | null>(null);
@@ -157,6 +165,7 @@ export class TwoFactorSetupModalComponent implements OnInit {
   readonly stepLabels = ['Scan QR', 'Verify', 'Backup Codes'];
 
   ngOnInit(): void {
+    this.previousFocus = document.activeElement as HTMLElement;
     this.load();
   }
 
@@ -177,15 +186,11 @@ export class TwoFactorSetupModalComponent implements OnInit {
   }
 
   private generateQr(url: string): void {
-    // Use dynamic import to generate QR client-side
     import('qrcode').then(QRCode => {
       QRCode.toDataURL(url, { width: 160, margin: 1 }).then(dataUrl => {
         this.qrDataUrl.set(dataUrl);
-      });
-    }).catch(() => {
-      // Fallback: use the URL as-is (a QR API would be another option)
-      this.qrDataUrl.set('');
-    });
+      }).catch(() => { this.qrError.set(true); });
+    }).catch(() => { this.qrError.set(true); });
   }
 
   verify(): void {
@@ -231,6 +236,7 @@ export class TwoFactorSetupModalComponent implements OnInit {
   }
 
   done(): void {
+    this.previousFocus?.focus();
     this.enabled.emit();
     this.closed.emit();
   }

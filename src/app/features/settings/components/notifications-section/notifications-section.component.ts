@@ -1,7 +1,7 @@
 import {
   Component, ChangeDetectionStrategy, input, output
 } from '@angular/core';
-import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
+import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch';
 import { NotificationSettings } from '../../../../core/models/settings.model';
 
 interface NotifRow {
