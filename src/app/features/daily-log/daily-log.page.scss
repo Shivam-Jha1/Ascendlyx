@@ -408,7 +408,7 @@
 }
 
 // ═══════════════════════════════════════
-//  ADD HABIT MODAL (matching dashboard)
+//  MODALS (Add Habit + Edit Habit)
 // ═══════════════════════════════════════
 .modal-overlay {
   position: fixed;
@@ -481,6 +481,17 @@
   font-size: 13px;
   color: var(--ax-red, #EF4444);
   margin-bottom: 16px;
+}
+
+.field-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--ax-red, #EF4444);
+}
+
+.field-invalid {
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 .form-group {
@@ -564,6 +575,21 @@
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+  }
+}
+
+// Readonly field for edit popup
+.readonly-field {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 14px;
+  color: var(--ax-text-light);
+
+  &.muted {
+    color: var(--ax-text-muted);
+    font-size: 13px;
   }
 }
 

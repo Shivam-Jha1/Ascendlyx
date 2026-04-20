@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed, D
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TitleCasePipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 
 import { DashboardService, CreateHabitPayload } from '../../core/services/dashboard.service';
 import { DashboardResponse, Habit, HabitCategory } from '../../core/models/dashboard.model';
@@ -28,7 +28,6 @@ export class DailyLogPage implements OnInit {
   error = signal<string | null>(null);
   dashboard = signal<DashboardResponse | null>(null);
   searchQuery = signal('');
-  checkinLoading = signal<string | null>(null);
 
   // ── Today info ──
   readonly today = new Date();
@@ -48,13 +47,13 @@ export class DailyLogPage implements OnInit {
     );
   });
 
-  isCheckedInToday(habit: Habit): boolean {
-    return habit.streak?.last_checkin_date === this.todayStr;
+  isCompletedToday(habit: Habit): boolean {
+    return habit.today_log?.is_completed === true;
   }
 
   // ── Stats ──
   habitsCompletedToday = computed(() =>
-    this.allHabits().filter(h => this.isCheckedInToday(h)).length
+    this.allHabits().filter(h => this.isCompletedToday(h)).length
   );
 
   totalHabits = computed(() => this.allHabits().length);
@@ -67,7 +66,6 @@ export class DailyLogPage implements OnInit {
 
   weeklyAvg = computed(() => {
     const raw = this.dashboard()?.weekly_summary?.completion_rate ?? 0;
-    // Backend may return a ratio (0–1) or already a percentage (> 1)
     let pct = raw <= 1 ? raw * 100 : raw;
     return Math.round(Math.min(100, Math.max(0, pct)));
   });
@@ -78,7 +76,7 @@ export class DailyLogPage implements OnInit {
     return Math.max(...habits.map(h => h.streak?.current_streak ?? 0));
   });
 
-  // ── Heatmap — 7 cells from weekly_summary.days ──
+  // ── Heatmap ──
   readonly DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   heatmapCells = computed(() => {
@@ -128,25 +126,167 @@ export class DailyLogPage implements OnInit {
       });
   }
 
-  checkinHabit(habit: Habit): void {
-    if (this.isCheckedInToday(habit) || this.checkinLoading()) return;
-    this.checkinLoading.set(habit.id);
-    this.dashboardService.checkinHabit(habit.id)
-      .pipe(
-        finalize(() => this.checkinLoading.set(null)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => this.loadData(),
-        error: err => console.error('Checkin failed:', err),
-      });
-  }
-
   onSearch(event: Event): void {
     this.searchQuery.set((event.target as HTMLInputElement).value);
   }
 
-  // ── Add Habit Modal ──
+  // ═══════════════════════════════════════
+  //  EDIT HABIT POPUP (check-in flow)
+  // ═══════════════════════════════════════
+  showEditPopup = signal(false);
+  savingEdit = signal(false);
+  editError = signal<string | null>(null);
+  editHabit = signal<Habit | null>(null);
+  editSubmitted = signal(false);
+  wasAlreadyCompleted = false;
+
+  editForm = {
+    actual_duration: null as number | null,
+    completed_at: '',
+  };
+
+  isoToLocalTime(iso: string): string {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
+  openEditPopup(habit: Habit): void {
+    this.editHabit.set(habit);
+    this.wasAlreadyCompleted = this.isCompletedToday(habit);
+
+    // Pre-fill from existing today_log if available
+    const log = habit.today_log;
+    this.editForm = {
+      actual_duration: log?.actual_duration ?? (habit.expected_duration ?? null),
+      completed_at: log?.completed_at
+        ? this.isoToLocalTime(log.completed_at)
+        : new Date().toTimeString().slice(0, 5),
+    };
+
+    this.editError.set(null);
+    this.editSubmitted.set(false);
+    this.showEditPopup.set(true);
+  }
+
+  isActualDurationInvalid(): boolean {
+    return this.editForm.actual_duration == null || this.editForm.actual_duration <= 0;
+  }
+
+  isCompletedAtInvalid(): boolean {
+    return !/^\d{2}:\d{2}$/.test(this.editForm.completed_at);
+  }
+
+  private isEditFormInvalid(): boolean {
+    return this.isActualDurationInvalid() || this.isCompletedAtInvalid();
+  }
+
+  private buildCompletedAtIso(time: string): string {
+    const [hours, minutes] = time.split(':').map(Number);
+    const completedAt = new Date(this.today);
+    completedAt.setHours(hours, minutes, 0, 0);
+    return completedAt.toISOString();
+  }
+
+  private updateHabitTodayLog(habitId: string, todayLog: Habit['today_log']): void {
+    const currentDashboard = this.dashboard();
+    if (!currentDashboard) return;
+
+    this.dashboard.set({
+      ...currentDashboard,
+      habits: currentDashboard.habits.map(habit =>
+        habit.id === habitId ? { ...habit, today_log: todayLog } : habit
+      ),
+    });
+  }
+
+  closeEditPopup(): void {
+    this.showEditPopup.set(false);
+    this.editHabit.set(null);
+    this.editSubmitted.set(false);
+  }
+
+  cancelEdit(): void {
+    const habit = this.editHabit();
+    if (habit && !this.wasAlreadyCompleted) {
+      this.updateHabitTodayLog(habit.id, null);
+    }
+    this.closeEditPopup();
+  }
+
+  saveEdit(): void {
+    const habit = this.editHabit();
+    if (!habit) return;
+
+    this.editSubmitted.set(true);
+    if (this.isEditFormInvalid()) {
+      this.editError.set('Enter both actual duration and completed time before saving.');
+      return;
+    }
+
+    this.savingEdit.set(true);
+    this.editError.set(null);
+    const payload = {
+      actual_duration: this.editForm.actual_duration!,
+      completed_at: this.buildCompletedAtIso(this.editForm.completed_at),
+    };
+
+    if (this.wasAlreadyCompleted) {
+      this.dashboardService.updateHabitLog(habit.id, this.todayStr, payload)
+        .pipe(
+          finalize(() => this.savingEdit.set(false)),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe({
+          next: () => {
+            this.closeEditPopup();
+            this.loadData();
+          },
+          error: err => this.editError.set(err?.error?.message || err?.error?.detail || 'Failed to update log'),
+        });
+    } else {
+      // 1) Toggle → mark complete, then 2) Update log with actual_duration
+      this.dashboardService.toggleHabit(habit.id, this.todayStr)
+        .pipe(
+          switchMap(() => {
+            return this.dashboardService.updateHabitLog(habit.id, this.todayStr, payload);
+          }),
+          finalize(() => this.savingEdit.set(false)),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe({
+          next: () => {
+            this.closeEditPopup();
+            this.loadData();
+          },
+          error: err => {
+            this.editError.set(err?.error?.message || err?.error?.detail || 'Failed to complete habit');
+          },
+        });
+    }
+  }
+
+  // ═══════════════════════════════════════
+  //  UNCOMPLETE (toggle back to incomplete)
+  // ═══════════════════════════════════════
+  uncompleteLoading = signal<string | null>(null);
+
+  uncompleteHabit(habit: Habit): void {
+    if (!this.isCompletedToday(habit) || this.uncompleteLoading()) return;
+    this.uncompleteLoading.set(habit.id);
+    this.dashboardService.toggleHabit(habit.id, this.todayStr)
+      .pipe(
+        finalize(() => this.uncompleteLoading.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => this.loadData(),
+        error: err => console.error('Uncomplete failed:', err),
+      });
+  }
+
+  // ═══════════════════════════════════════
+  //  ADD HABIT MODAL
+  // ═══════════════════════════════════════
   showAddHabit = signal(false);
   savingHabit = signal(false);
   habitError = signal<string | null>(null);
@@ -156,12 +296,11 @@ export class DailyLogPage implements OnInit {
     name: '',
     category: 'fitness' as HabitCategory,
     reminder_time: '09:00',
-    duration_minutes: 30,
-    daily_target: 1,
+    expected_duration: 30 as number | null,
   };
 
   openAddHabit(): void {
-    this.habitForm = { name: '', category: 'fitness', reminder_time: '09:00', duration_minutes: 30, daily_target: 1 };
+    this.habitForm = { name: '', category: 'fitness', reminder_time: '09:00', expected_duration: 30 };
     this.habitError.set(null);
     this.showAddHabit.set(true);
   }
@@ -181,23 +320,19 @@ export class DailyLogPage implements OnInit {
     }
     this.savingHabit.set(true);
     this.habitError.set(null);
-    // Normalize reminder_time from HH:MM to HH:MM:SS (backend expects HH:MM:SS)
+
     const rawTime = this.habitForm.reminder_time;
     const normalizedTime = rawTime
       ? (rawTime.length === 5 ? rawTime + ':00' : rawTime)
       : undefined;
 
-    const dailyTarget =
-      this.habitForm.daily_target && this.habitForm.daily_target > 0
-        ? this.habitForm.daily_target
-        : 1;
-
     const payload: CreateHabitPayload = {
       name: this.habitForm.name.trim(),
       category: this.habitForm.category,
       reminder_time: normalizedTime,
-      duration_minutes: this.habitForm.duration_minutes || undefined,
-      daily_target: dailyTarget,
+      expected_duration: this.habitForm.expected_duration && this.habitForm.expected_duration > 0
+        ? this.habitForm.expected_duration
+        : undefined,
     };
     this.dashboardService.createHabit(payload)
       .pipe(

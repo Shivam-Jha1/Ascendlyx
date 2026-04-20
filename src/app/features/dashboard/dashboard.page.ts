@@ -202,12 +202,11 @@ export class DashboardPage implements OnInit {
     name: '',
     category: 'fitness' as HabitCategory,
     reminder_time: '09:00',
-    duration_minutes: 30,
-    daily_target: 1,
+    expected_duration: 30 as number | null,
   };
 
   openAddHabit(): void {
-    this.habitForm = { name: '', category: 'fitness', reminder_time: '09:00', duration_minutes: 30, daily_target: 1 };
+    this.habitForm = { name: '', category: 'fitness', reminder_time: '09:00', expected_duration: 30 };
     this.habitError.set(null);
     this.showAddHabit.set(true);
   }
@@ -234,8 +233,9 @@ export class DashboardPage implements OnInit {
       name,
       category: this.habitForm.category,
       reminder_time: this.habitForm.reminder_time ? this.habitForm.reminder_time + ':00' : undefined,
-      duration_minutes: this.habitForm.duration_minutes || undefined,
-      daily_target: this.habitForm.daily_target || 1,
+      expected_duration: this.habitForm.expected_duration && this.habitForm.expected_duration > 0
+        ? this.habitForm.expected_duration
+        : undefined,
     };
 
     this.dashboardService.createHabit(payload)
