@@ -3,7 +3,19 @@ export type HabitCategory = 'fitness' | 'study' | 'mindfulness' | 'reading' | 'c
 export interface Streak {
   current_streak: number;
   longest_streak: number;
-  last_checkin_date: string;
+  last_checkin_date: string | null;
+}
+
+export interface HabitLog {
+  id: number | string;
+  habit_id: string;
+  user_id: string;
+  date: string;
+  is_completed: boolean;
+  actual_duration: number | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Habit {
@@ -12,21 +24,19 @@ export interface Habit {
   name: string;
   category: HabitCategory;
   reminder_time: string;
-  duration_minutes: number;
-  daily_target: number;
+  expected_duration: number | null;
   is_active: boolean;
   streak: Streak;
+  today_log: HabitLog | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface HabitCheckin {
-  id: string;
+export interface ToggleResponse {
   habit_id: string;
-  user_id: string;
-  checked_at: string;
-  note: string;
-  created_at: string;
+  date: string;
+  is_completed: boolean;
+  streak: Streak;
 }
 
 export interface Goal {
