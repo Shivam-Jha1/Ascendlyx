@@ -54,9 +54,7 @@
               [attr.aria-label]="isCompletedToday(habit) ? 'Edit: ' + habit.name : 'Complete: ' + habit.name"
               (click)="openEditPopup(habit)"
             >
-              @if (uncompleteLoading() === habit.id) {
-                <i class="bi bi-arrow-repeat spin"></i>
-              } @else if (isCompletedToday(habit)) {
+              @if (isCompletedToday(habit)) {
                 <i class="bi bi-check-lg"></i>
               }
             </button>
@@ -120,31 +118,41 @@
 
       <!-- Streak Heatmap -->
       <div class="chart-card heatmap-card">
-        <div class="cc-title">This Week</div>
-        <div class="heatmap-sub">{{ today | date:'MMM d' }} week · 7 days</div>
+        <div class="cc-title">Streak Heatmap</div>
+        <div class="heatmap-sub">Last 84 days</div>
 
-        <div class="heatmap-grid">
-          @for (cell of heatmapCells(); track cell.date) {
-            <div class="heatmap-col">
-              <div
-                class="heatmap-cell"
-                [class.level-0]="cell.level === 0"
-                [class.level-1]="cell.level === 1"
-                [class.level-2]="cell.level === 2"
-                [class.level-3]="cell.level === 3"
-                [title]="cell.date"
-              ></div>
-              <div class="heatmap-day-label">{{ cell.dayLabel }}</div>
-            </div>
+        @if (selectedHeatmapCell(); as sel) {
+          <div class="heatmap-tooltip">
+            <span class="heatmap-tooltip-date">{{ sel.date | date:'EEE, MMM d' }}</span>
+            <span class="heatmap-tooltip-count">{{ sel.count }}/{{ sel.total }} habits</span>
+          </div>
+        }
+
+        <div class="heatmap-grid" [style.--hm-cols]="heatmapGrid().numCols">
+          @for (cell of heatmapGrid().flatCells; track cell.date + $index) {
+            <button
+              type="button"
+              class="hm-cell"
+              [class.l1]="cell.level === 1"
+              [class.l2]="cell.level === 2"
+              [class.l3]="cell.level === 3"
+              [class.l4]="cell.level === 4"
+              [class.out-of-range]="!cell.inRange"
+              [class.selected]="selectedHeatmapCell()?.date === cell.date"
+              [attr.aria-label]="cell.inRange ? (cell.date + ': ' + cell.count + ' habits') : null"
+              [attr.title]="cell.inRange ? (cell.date + ' — ' + cell.count + '/' + cell.total + ' habits') : null"
+              (click)="selectHeatmapCell(cell)"
+            ></button>
           }
         </div>
 
         <div class="heatmap-legend">
           <span>Less</span>
-          <div class="heatmap-cell level-0"></div>
-          <div class="heatmap-cell level-1"></div>
-          <div class="heatmap-cell level-2"></div>
-          <div class="heatmap-cell level-3"></div>
+          <div class="hm-cell"></div>
+          <div class="hm-cell l1"></div>
+          <div class="hm-cell l2"></div>
+          <div class="hm-cell l3"></div>
+          <div class="hm-cell l4"></div>
           <span>More</span>
         </div>
       </div>

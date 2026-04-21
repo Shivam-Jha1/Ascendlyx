@@ -77,26 +77,52 @@ export class DailyLogPage implements OnInit {
   });
 
   // ── Heatmap ──
-  readonly DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  selectedHeatmapCell = signal<{ date: string; count: number; total: number } | null>(null);
 
-  heatmapCells = computed(() => {
+  heatmapGrid = computed(() => {
     const data = this.dashboard();
     const days = data?.weekly_summary?.days ?? [];
     const totalHabits = this.totalHabits();
-    const sortedDays = [...days].sort((a, b) => a.date.localeCompare(b.date));
-    return sortedDays.map(day => {
-      const pct = totalHabits === 0
-        ? 0
-        : Math.round((day.habits_completed / totalHabits) * 100);
-      let level = 0;
-      if (pct > 0 && pct < 50) level = 1;
-      else if (pct >= 50 && pct < 80) level = 2;
-      else if (pct >= 80) level = 3;
-      const d = new Date(day.date + 'T00:00:00');
-      const dayLabel = this.DAY_LABELS[d.getDay()];
-      return { date: day.date, level, dayLabel };
-    });
+
+    const byDate = new Map(days.map(d => [d.date, d.habits_completed]));
+
+    // Always show 12 columns × 7 rows = 84 days, grid end = Saturday of current week
+    const NUM_COLS = 12;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const gridEnd = new Date(today);
+    gridEnd.setDate(gridEnd.getDate() + (6 - today.getDay())); // advance to Saturday
+    const gridStart = new Date(gridEnd);
+    gridStart.setDate(gridStart.getDate() - (NUM_COLS * 7 - 1));
+
+    // Build flat array in row-major order: outer = weekday row (0=Sun..6=Sat), inner = week col
+    const flatCells: Array<{ date: string; count: number; total: number; level: number; inRange: boolean }> = [];
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < NUM_COLS; col++) {
+        const d = new Date(gridStart);
+        d.setDate(d.getDate() + col * 7 + row);
+        const dateStr = d.toISOString().slice(0, 10);
+        const inRange = d <= today;
+        const count = byDate.get(dateStr) ?? 0;
+        const pct = totalHabits === 0 ? 0 : (count / totalHabits) * 100;
+        let level = 0;
+        if (inRange && count > 0) {
+          if (pct <= 25) level = 1;
+          else if (pct <= 50) level = 2;
+          else if (pct <= 75) level = 3;
+          else level = 4;
+        }
+        flatCells.push({ date: dateStr, count, total: totalHabits, level, inRange });
+      }
+    }
+    return { flatCells, numCols: NUM_COLS };
   });
+
+  selectHeatmapCell(cell: { date: string; count: number; total: number; inRange: boolean }): void {
+    if (!cell.inRange) return;
+    const current = this.selectedHeatmapCell();
+    this.selectedHeatmapCell.set(current?.date === cell.date ? null : { date: cell.date, count: cell.count, total: cell.total });
+  }
 
   // ── Helpers ──
   formatTime(time: string): string {
@@ -207,7 +233,7 @@ export class DailyLogPage implements OnInit {
 
   cancelEdit(): void {
     const habit = this.editHabit();
-    if (habit  && habit.today_log) {
+    if (habit && habit.today_log) {
       this.dashboardService.deleteHabitLog(habit.id, this.todayStr)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
@@ -216,9 +242,9 @@ export class DailyLogPage implements OnInit {
             this.closeEditPopup();
           },
           error: () => {
-            // Even on error, clear local state and close
-            this.updateHabitTodayLog(habit.id, null);
+            // Delete failed — reload to sync UI with actual backend state
             this.closeEditPopup();
+            this.loadData();
           },
         });
     } else {
@@ -272,6 +298,8 @@ export class DailyLogPage implements OnInit {
             this.loadData();
           },
           error: err => {
+            // Toggle may have succeeded — reload to sync state with backend
+            this.loadData();
             this.editError.set(err?.error?.message || err?.error?.detail || 'Failed to complete habit');
           },
         });

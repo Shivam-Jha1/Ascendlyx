@@ -7,10 +7,10 @@ export interface Streak {
 }
 
 export interface HabitLog {
-  id: string;
+  id: number | string;
   habit_id: string;
   user_id: string;
-  log_date: string;
+  date: string;
   is_completed: boolean;
   actual_duration: number | null;
   completed_at: string | null;
