@@ -237,6 +237,34 @@
   }
 }
 
+// ── Delete Button ──
+.habit-delete {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--ax-text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--ax-red, #EF4444);
+    opacity: 1;
+  }
+}
+
+.habit-card:hover .habit-delete {
+  opacity: 1;
+}
+
 // ── Streak Badge ──
 .habit-streak {
   display: flex;
@@ -575,6 +603,44 @@
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+  }
+
+  .btn-danger {
+    flex: 1;
+    padding: 13px 24px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: var(--ax-red, #EF4444);
+
+    &:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.modal-compact {
+  max-width: 400px;
+}
+
+.delete-confirm-text {
+  font-size: 14px;
+  color: var(--ax-text-muted);
+  line-height: 1.6;
+  margin-bottom: 4px;
+
+  strong {
+    color: var(--ax-text-light);
+    font-weight: 600;
   }
 }
 

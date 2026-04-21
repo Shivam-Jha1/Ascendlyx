@@ -46,4 +46,12 @@ export class DashboardService {
   updateHabitLog(habitId: string, logDate: string, payload: HabitLogUpdatePayload): Observable<HabitLog> {
     return this.http.put<HabitLog>(`${this.apiUrl}/habits/${habitId}/log/${logDate}`, payload);
   }
+
+  deleteHabitLog(habitId: string, logDate: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/habits/${habitId}/log/${logDate}`);
+  }
+
+  deleteHabit(habitId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/habits/${habitId}`);
+  }
 }

@@ -207,10 +207,23 @@ export class DailyLogPage implements OnInit {
 
   cancelEdit(): void {
     const habit = this.editHabit();
-    if (habit && !this.wasAlreadyCompleted) {
-      this.updateHabitTodayLog(habit.id, null);
+    if (habit  && habit.today_log) {
+      this.dashboardService.deleteHabitLog(habit.id, this.todayStr)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.updateHabitTodayLog(habit.id, null);
+            this.closeEditPopup();
+          },
+          error: () => {
+            // Even on error, clear local state and close
+            this.updateHabitTodayLog(habit.id, null);
+            this.closeEditPopup();
+          },
+        });
+    } else {
+      this.closeEditPopup();
     }
-    this.closeEditPopup();
   }
 
   saveEdit(): void {
@@ -263,6 +276,43 @@ export class DailyLogPage implements OnInit {
           },
         });
     }
+  }
+
+  // ═══════════════════════════════════════
+  //  DELETE HABIT
+  // ═══════════════════════════════════════
+  showDeleteConfirm = signal(false);
+  deletingHabit = signal(false);
+  deleteTargetHabit = signal<Habit | null>(null);
+
+  openDeleteConfirm(habit: Habit, event: Event): void {
+    event.stopPropagation();
+    this.deleteTargetHabit.set(habit);
+    this.showDeleteConfirm.set(true);
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm.set(false);
+    this.deleteTargetHabit.set(null);
+  }
+
+  confirmDelete(): void {
+    const habit = this.deleteTargetHabit();
+    if (!habit) return;
+    this.deletingHabit.set(true);
+    this.dashboardService.deleteHabit(habit.id)
+      .pipe(
+        finalize(() => this.deletingHabit.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.showDeleteConfirm.set(false);
+          this.deleteTargetHabit.set(null);
+          this.loadData();
+        },
+        error: err => console.error('Delete failed:', err),
+      });
   }
 
   // ═══════════════════════════════════════

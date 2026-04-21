@@ -80,6 +80,13 @@
               <span class="streak-fire">🔥</span>
               <span class="streak-count">{{ habit.streak.current_streak }}</span>
             </div>
+
+            <!-- Delete -->
+            <button class="habit-delete" type="button"
+              [attr.aria-label]="'Delete ' + habit.name"
+              (click)="openDeleteConfirm(habit, $event)">
+              <i class="bi bi-trash3"></i>
+            </button>
           </div>
         }
       }
@@ -140,6 +147,28 @@
           <div class="heatmap-cell level-3"></div>
           <span>More</span>
         </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Delete Confirm Modal ═══ -->
+@if (showDeleteConfirm()) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-box modal-compact" role="alertdialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" (click)="$event.stopPropagation()">
+      <div class="modal-header-row">
+        <h3 id="deleteConfirmTitle" class="modal-title">Delete Habit 🗑️</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="cancelDelete()">&times;</button>
+      </div>
+      <p class="delete-confirm-text">
+        Are you sure you want to delete <strong>{{ deleteTargetHabit()?.name }}</strong>?
+        This will also remove all logs and streaks for this habit. This action cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" (click)="cancelDelete()">Cancel</button>
+        <button type="button" class="btn-danger" [disabled]="deletingHabit()" (click)="confirmDelete()">
+          @if (deletingHabit()) { Deleting... } @else { Delete }
+        </button>
       </div>
     </div>
   </div>
