@@ -1,0 +1,150 @@
+.score-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ax-font-head);
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 20px;
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ax-purple);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+}
+
+// ── Gauge ──────────────────────────────────────────────────────────────────
+.gauge-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 12px;
+}
+
+.gauge-svg {
+  width: 140px;
+  height: 140px;
+  filter: drop-shadow(0 0 20px rgba(108, 99, 255, 0.35));
+}
+
+.gauge-arc {
+  transition: stroke-dashoffset 1.2s ease-out;
+}
+
+.gauge-num {
+  font-family: var(--ax-font-head);
+  font-size: 26px;
+  font-weight: 800;
+  fill: var(--ax-text-light);
+}
+.gauge-sub {
+  font-size: 11px;
+  fill: var(--ax-text-muted);
+}
+
+// ── Rating ─────────────────────────────────────────────────────────────────
+.rating-row {
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.rating-word {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.percentile-label {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ax-text-muted);
+  margin-bottom: 20px;
+}
+
+.analyzing-text {
+  text-align: center;
+  font-size: 13px;
+  color: var(--ax-text-muted);
+  margin: 8px 0 16px;
+}
+
+// ── Sub-scores ─────────────────────────────────────────────────────────────
+.sub-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sub-row {}
+
+.sub-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.sub-label {
+  font-size: 13px;
+  color: var(--ax-text-muted);
+}
+
+.sub-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ax-text-light);
+}
+
+.progress-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.9s ease-out;
+
+  &.green { background: var(--ax-green); }
+  &.blue  { background: var(--ax-purple); }
+  &.cyan  { background: var(--ax-blue); }
+}
+
+// ── Skeletons ──────────────────────────────────────────────────────────────
+.gauge-skeleton {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  margin: 4px auto 12px;
+}
+
+.no-data {
+  color: var(--ax-text-muted);
+  font-size: 13px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.sub-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sub-sk-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sk-label { width: 90px; height: 12px; border-radius: 6px; }
+.sk-bar   { width: 100%; height: 5px; border-radius: 3px; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.3); }
+}

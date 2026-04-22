@@ -1,0 +1,16 @@
+<div class="chart-card">
+  <div class="cc-header">
+    <span class="cc-title">Productivity</span>
+    <span class="cc-period">This Week</span>
+  </div>
+
+  @if (isLoading()) {
+    <div class="chart-skeleton shimmer"></div>
+  } @else if (days().length === 0) {
+    <div class="chart-empty">No data available yet</div>
+  } @else {
+    <div class="chart-wrap">
+      <canvas #chartCanvas></canvas>
+    </div>
+  }
+</div>

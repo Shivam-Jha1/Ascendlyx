@@ -411,8 +411,25 @@ body {
 }
 
 // ═══════════════════════════════════════
-//  TAGS / BADGES
+//  SHIMMER SKELETON
 // ═══════════════════════════════════════
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerMove 1.5s infinite;
+}
+
+@keyframes shimmerMove {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+
 .ax-tag {
   font-size: 11px;
   padding: 2px 9px;

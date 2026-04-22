@@ -1,0 +1,19 @@
+<div class="coach-card">
+  <div class="coach-header">
+    <span class="coach-dot"></span>
+    <span class="coach-title">AI COACH SAYS</span>
+  </div>
+
+  @if (isLoading() || isStale()) {
+    <div class="coach-shimmer">
+      <div class="shimmer sk-line"></div>
+      <div class="shimmer sk-line short"></div>
+      <div class="shimmer sk-line shorter"></div>
+      <p class="thinking-text">✨ Thinking...</p>
+    </div>
+  } @else if (message()) {
+    <p class="coach-message">"{{ message() }}"</p>
+  } @else {
+    <p class="coach-message muted">No coaching message yet. Refresh insights to generate one.</p>
+  }
+</div>
