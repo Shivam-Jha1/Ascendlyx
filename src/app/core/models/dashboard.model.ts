@@ -85,6 +85,6 @@ export interface WeeklySummary {
 export interface DashboardResponse {
   habits: Habit[];
   goals: Goal[];
-  ai_score: AIScore | null;
+  ai_score: number | null;
   weekly_summary: WeeklySummary;
 }

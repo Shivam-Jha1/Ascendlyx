@@ -63,7 +63,7 @@
     />
     <app-stat-card
       icon="⚡"
-      [value]="aiScore()?.score != null ? '' + aiScore()!.score : '--'"
+      [value]="aiScore() != null ? '' + aiScore() : '--'"
       label="AI Score"
       [badge]="aiScore() ? '↑ Score' : ''"
       colorClass="blue"

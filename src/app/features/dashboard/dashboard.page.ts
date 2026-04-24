@@ -7,7 +7,7 @@ import { finalize } from 'rxjs';
 
 import { DashboardService, CreateHabitPayload } from '../../core/services/dashboard.service';
 import { AuthService } from '../../core/services/auth.service';
-import { DashboardResponse, Habit, Goal, AIScore, DaySummary, HabitCategory } from '../../core/models/dashboard.model';
+import { DashboardResponse, Habit, Goal, DaySummary, HabitCategory } from '../../core/models/dashboard.model';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -126,36 +126,14 @@ export class DashboardPage implements OnInit {
       .slice(0, 3);
   });
 
-  // AI insight text from breakdown
+  // AI insight text derived from plain score number
   aiInsightText = computed(() => {
     const score = this.aiScore();
-    if (!score) return '';
-    const { completion_rate, streak_consistency, goal_progress_rate } = score.breakdown;
-    const parts: string[] = [];
-    const completionPct = Math.round(completion_rate * 100);
-
-    if (completionPct >= 80) {
-      parts.push(`Your 7-day completion rate is <strong>${completionPct}%</strong> — outstanding consistency!`);
-    } else if (completionPct >= 50) {
-      parts.push(`Your 7-day completion rate is <strong>${completionPct}%</strong> — solid progress, keep pushing!`);
-    } else {
-      parts.push(`Your 7-day completion rate is <strong>${completionPct}%</strong> — try to check in more consistently this week.`);
-    }
-
-    if (streak_consistency >= 0.7) {
-      parts.push(`Your streaks are rock-solid.`);
-    } else if (streak_consistency >= 0.3) {
-      parts.push(`Streak consistency is moderate — don't break the chain!`);
-    }
-
-    const goalPct = Math.round(goal_progress_rate * 100);
-    if (goalPct >= 60) {
-      parts.push(`<strong>${goalPct}%</strong> of your goals are past the halfway mark.`);
-    } else {
-      parts.push(`Only <strong>${goalPct}%</strong> of goals are past 50% — focus on making progress today.`);
-    }
-
-    return parts.join(' ');
+    if (score == null) return '';
+    if (score >= 85) return `Your AI score is <strong>${score}</strong> — outstanding performance this week! Keep up the momentum.`;
+    if (score >= 70) return `Your AI score is <strong>${score}</strong> — solid week! A little more consistency will push you to the top.`;
+    if (score >= 50) return `Your AI score is <strong>${score}</strong> — good progress. Focus on checking in daily to boost your score.`;
+    return `Your AI score is <strong>${score}</strong> — there's room to grow. Try completing at least one habit every day this week.`;
   });
 
   goalProgressColor(index: number): string {
