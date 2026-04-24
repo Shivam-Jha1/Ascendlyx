@@ -1,0 +1,96 @@
+<div class="chart-card score-card">
+  <div class="score-title">
+    <span class="dot"></span>
+    AI Productivity Score
+  </div>
+
+  @if (isLoading() || (isStale() && score() === null)) {
+    <div class="gauge-skeleton shimmer"></div>
+    <p class="analyzing-text">Analyzing your data...</p>
+    <div class="sub-skeleton">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="sub-sk-row">
+          <div class="shimmer sk-label"></div>
+          <div class="shimmer sk-bar"></div>
+        </div>
+      }
+    </div>
+  } @else if (!insight()) {
+    <div class="no-data">No score data yet.</div>
+  } @else {
+    <!-- Donut Gauge -->
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 130 130" class="gauge-svg">
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00C2FF" />
+            <stop offset="100%" stop-color="#6C63FF" />
+          </linearGradient>
+        </defs>
+        <!-- Track -->
+        <circle cx="65" cy="65" r="54"
+          fill="none"
+          stroke="rgba(255,255,255,0.06)"
+          stroke-width="11" />
+        <!-- Arc -->
+        <circle cx="65" cy="65" r="54"
+          fill="none"
+          stroke="url(#gaugeGrad)"
+          stroke-width="11"
+          stroke-linecap="round"
+          [attr.stroke-dasharray]="circumference"
+          [attr.stroke-dashoffset]="dashOffset()"
+          transform="rotate(-90 65 65)"
+          class="gauge-arc" />
+        <!-- Center score -->
+        <text x="65" y="60" class="gauge-num" text-anchor="middle" dominant-baseline="middle">
+          {{ score() ?? '--' }}
+        </text>
+        <text x="65" y="78" class="gauge-sub" text-anchor="middle">/ 100</text>
+      </svg>
+    </div>
+
+    <!-- Rating -->
+    <div class="rating-row">
+      <span class="rating-word" [style.color]="ratingColor()">
+        {{ rating() ?? 'Analyzing' }} {{ rating() ? '✨' : '' }}
+      </span>
+    </div>
+    @if (percentile() !== null) {
+      <p class="percentile-label">Top {{ percentile() }}% of users this week</p>
+    }
+
+    <!-- Sub-scores -->
+    <div class="sub-scores">
+      <div class="sub-row">
+        <div class="sub-head">
+          <span class="sub-label">Consistency</span>
+          <span class="sub-pct">{{ consistency() }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill green" [style.width.%]="animConsistency()"></div>
+        </div>
+      </div>
+
+      <div class="sub-row">
+        <div class="sub-head">
+          <span class="sub-label">Grit Score</span>
+          <span class="sub-pct">{{ gritScore() }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill blue" [style.width.%]="animGrit()"></div>
+        </div>
+      </div>
+
+      <div class="sub-row">
+        <div class="sub-head">
+          <span class="sub-label">Goal Progress</span>
+          <span class="sub-pct">{{ goalProgress() }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill cyan" [style.width.%]="animGoal()"></div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

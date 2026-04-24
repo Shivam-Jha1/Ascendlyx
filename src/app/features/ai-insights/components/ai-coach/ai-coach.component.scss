@@ -1,0 +1,67 @@
+:host {
+  display: block;
+}
+
+.coach-card {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.08), rgba(0, 194, 255, 0.04));
+  border: 1px solid rgba(108, 99, 255, 0.25);
+  border-radius: var(--ax-radius);
+  padding: 22px;
+}
+
+.coach-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.coach-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ax-purple);
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+.coach-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ax-purple);
+}
+
+.coach-message {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ax-text-light);
+
+  &.muted { color: var(--ax-text-muted); font-style: italic; }
+}
+
+.coach-shimmer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thinking-text {
+  font-size: 12px;
+  color: var(--ax-text-muted);
+  margin-top: 4px;
+}
+
+.sk-line {
+  height: 13px;
+  border-radius: 6px;
+  width: 100%;
+  &.short   { width: 80%; }
+  &.shorter { width: 60%; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.3); }
+}

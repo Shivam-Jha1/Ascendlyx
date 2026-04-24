@@ -1,0 +1,29 @@
+<section class="nudges-section">
+  <div class="nudges-title">
+    <span class="dot"></span>
+    Smart Nudges
+  </div>
+
+  @if (isLoading() || (isStale() && !nudges()?.length)) {
+    @for (i of skeletonRows; track i) {
+      <div class="nudge-row skeleton-row">
+        <div class="shimmer nudge-icon-sk"></div>
+        <div class="nudge-text-sk">
+          <div class="shimmer sk-line"></div>
+          <div class="shimmer sk-line short"></div>
+        </div>
+      </div>
+    }
+  } @else if (!nudgeItems().length) {
+    <p class="no-nudges">No nudges available this week.</p>
+  } @else {
+    @for (nudge of nudgeItems(); track $index) {
+      <div class="nudge-row" [style.animation-delay]="($index * 80) + 'ms'">
+        <div class="nudge-icon">{{ nudge.icon }}</div>
+        <div class="nudge-text">
+          <p class="nudge-body">{{ nudge.body }}</p>
+        </div>
+      </div>
+    }
+  }
+</section>

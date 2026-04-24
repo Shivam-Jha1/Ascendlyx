@@ -1,0 +1,58 @@
+<div class="chart-card report-card">
+  <div class="report-title">
+    <span class="dot"></span>
+    Weekly Performance Report
+  </div>
+
+  @if (isLoading()) {
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+      <div class="report-row skeleton-row">
+        <div class="shimmer sk-label"></div>
+        <div class="shimmer sk-value"></div>
+      </div>
+    }
+  } @else if (!report()) {
+    <div class="no-data">No report data yet. Refresh insights.</div>
+  } @else {
+    <!-- Habits Completed -->
+    <div class="report-row">
+      <span class="row-label">Habits Completed</span>
+      <div class="row-right">
+        <span class="row-value">{{ report()!.habits_completed }} / {{ report()!.habits_total_possible }}</span>
+        <span class="delta-chip" [class.positive]="habitsDelta() >= 0" [class.negative]="habitsDelta() < 0">
+          {{ habitsDelta() >= 0 ? '+' : '' }}{{ habitsDelta() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Avg Daily Score -->
+    <div class="report-row">
+      <span class="row-label">Avg Daily Score</span>
+      <span class="row-value green">{{ avgDailyScore() }} pts</span>
+    </div>
+
+    <!-- Most Productive Time -->
+    <div class="report-row">
+      <span class="row-label">Most Productive Time</span>
+      <span class="row-value cyan">
+        {{ report()!.most_productive_time || 'Not enough data' }}
+      </span>
+    </div>
+
+    <!-- Missed Habits -->
+    <div class="report-row">
+      <span class="row-label">Missed Habits</span>
+      <div class="row-right">
+        <span class="row-value red">{{ missedHabits() }}</span>
+      </div>
+    </div>
+
+    <!-- Streak Status (from dashboard streak, passed as extra input if needed) -->
+    <div class="report-row no-border">
+      <span class="row-label">Consistency</span>
+      <span class="row-value orange">
+        {{ (report()!.consistency_score * 100).toFixed(0) }}%
+      </span>
+    </div>
+  }
+</div>

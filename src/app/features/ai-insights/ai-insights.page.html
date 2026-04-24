@@ -1,4 +1,95 @@
-<div class="ai-insights-page">
-  <h2>AI Insights</h2>
-  <!-- AI Insights content placeholder -->
+<!-- ── Page Header ─────────────────────────────────────── -->
+<div class="page-header">
+  <div class="header-left">
+    <h1 class="page-title">AI Insights <span class="emoji">🤖</span></h1>
+    <p class="page-sub">Your personalized performance analysis</p>
+  </div>
+  <button
+    class="refresh-btn"
+    [disabled]="isRefreshing()"
+    (click)="refresh()"
+    title="Refresh insights"
+    aria-label="Refresh insights"
+  >
+    <i class="bi" [class.bi-arrow-clockwise]="!isRefreshing()" [class.bi-hourglass-split]="isRefreshing()"></i>
+  </button>
 </div>
+
+<!-- ── Toast ───────────────────────────────────────────── -->
+@if (toastMessage()) {
+  <div class="toast-banner">{{ toastMessage() }}</div>
+}
+
+<!-- ── Stale banner ────────────────────────────────────── -->
+@if (isStale() && !isLoading()) {
+  <div class="stale-banner">
+    <span class="stale-pulse"></span>
+    ✨ AI is analyzing your week… refreshes automatically
+  </div>
+}
+
+<!-- ── Error ───────────────────────────────────────────── -->
+@if (error()) {
+  <div class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="refresh()">Retry</button>
+  </div>
+}
+
+<!-- ── No data yet ─────────────────────────────────────── -->
+@if (hasNoData() && !isLoading()) {
+  <div class="no-data-state">
+    <p class="no-data-text">No insights computed yet.</p>
+    <p class="no-data-sub">Click the refresh button to generate your first report.</p>
+  </div>
+}
+
+<!-- ── Main grid ───────────────────────────────────────── -->
+@if (!error()) {
+  <div class="insights-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <!-- Productivity Chart -->
+      <app-productivity-chart
+        [days]="chartDays()"
+        [isLoading]="isLoading() || dashboardLoading()"
+      />
+
+      <!-- Weekly Performance Report -->
+      <app-weekly-report
+        [report]="insight()"
+        [isLoading]="isLoading()"
+      />
+
+      <!-- Smart Nudges -->
+      <app-smart-nudges
+        [nudges]="insight()?.smart_nudges ?? null"
+        [isLoading]="isLoading()"
+        [isStale]="isStale() && !isAIReady()"
+      />
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <!-- AI Productivity Score -->
+      <app-ai-score
+        [insight]="insight()"
+        [isLoading]="isLoading()"
+        [isStale]="isStale() && !isAIReady()"
+      />
+
+      <!-- AI Coach Says -->
+      <app-ai-coach
+        [message]="insight()?.ai_coach_message ?? null"
+        [isStale]="isStale() && !isAIReady()"
+        [isLoading]="isLoading()"
+      />
+
+    </div>
+
+  </div>
+}
