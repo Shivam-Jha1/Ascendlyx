@@ -8,9 +8,9 @@
     <div class="chart-skeleton shimmer"></div>
   } @else if (days().length === 0) {
     <div class="chart-empty">No data available yet</div>
-  } @else {
-    <div class="chart-wrap">
-      <canvas #chartCanvas></canvas>
-    </div>
   }
+  <!-- canvas is always in the DOM so ViewChild resolves on ngAfterViewInit -->
+  <div class="chart-wrap" [hidden]="isLoading() || days().length === 0">
+    <canvas #chartCanvas></canvas>
+  </div>
 </div>

@@ -35,20 +35,19 @@ export class ProductivityChartComponent implements AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private chart: Chart | null = null;
-  private initialized = false;
 
   constructor() {
     effect(() => {
       const days = this.days();
-      if (this.initialized && this.chart) {
+      if (this.chart) {
         this.updateChart(days);
       }
     });
   }
 
   ngAfterViewInit(): void {
+    // Canvas is always in DOM, so canvasRef is always defined here
     this.buildChart(this.days());
-    this.initialized = true;
   }
 
   ngOnDestroy(): void {
