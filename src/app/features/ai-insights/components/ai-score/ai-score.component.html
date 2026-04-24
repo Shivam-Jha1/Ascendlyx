@@ -44,7 +44,7 @@
           class="gauge-arc" />
         <!-- Center score -->
         <text x="65" y="60" class="gauge-num" text-anchor="middle" dominant-baseline="middle">
-          {{ score() }}
+          {{ score() ?? '--' }}
         </text>
         <text x="65" y="78" class="gauge-sub" text-anchor="middle">/ 100</text>
       </svg>
@@ -52,7 +52,9 @@
 
     <!-- Rating -->
     <div class="rating-row">
-      <span class="rating-word" [style.color]="ratingColor()">{{ rating() }} ✨</span>
+      <span class="rating-word" [style.color]="ratingColor()">
+        {{ rating() ?? 'Analyzing' }} {{ rating() ? '✨' : '' }}
+      </span>
     </div>
     @if (percentile() !== null) {
       <p class="percentile-label">Top {{ percentile() }}% of users this week</p>

@@ -172,25 +172,7 @@
   }
 }
 
-// ── Shared card style ─────────────────────────────────────
-// (Used by child components via global .chart-card)
-
-// ── Shimmer utility ───────────────────────────────────────
-:host ::ng-deep .shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.09) 50%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmerMove 1.5s infinite;
-}
-
-@keyframes shimmerMove {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
-}
+// .shimmer is defined globally in styles.scss — no local override needed
 
 @keyframes colSlideIn {
   from { opacity: 0; transform: translateY(18px); }

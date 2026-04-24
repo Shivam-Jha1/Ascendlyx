@@ -1,7 +1,6 @@
 import { Injectable, inject, signal, DestroyRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { interval, Subject, of } from 'rxjs';
-import { catchError, finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, interval, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 import {
@@ -76,9 +75,13 @@ export class InsightsService {
         },
         error: err => {
           if (err.status === 429) {
-            this.toastMessage.set('Already refreshing, check back in a moment');
+            this.toastMessage.set('Insights were refreshed recently. Please try again in 2 hours.');
             setTimeout(() => this.toastMessage.set(null), 4000);
+            return;
           }
+          this.error.set('Failed to refresh insights.');
+          this.toastMessage.set('Failed to refresh insights. Please try again later.');
+          setTimeout(() => this.toastMessage.set(null), 4000);
         },
       });
   }

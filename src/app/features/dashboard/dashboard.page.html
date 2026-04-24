@@ -65,7 +65,7 @@
       icon="⚡"
       [value]="aiScore() != null ? '' + aiScore() : '--'"
       label="AI Score"
-      [badge]="aiScore() ? '↑ Score' : ''"
+      [badge]="aiScore() != null ? '↑ Score' : ''"
       colorClass="blue"
       [badgeStyle]="{ background: 'rgba(0,194,255,0.1)', 'border-color': 'rgba(0,194,255,0.25)', color: 'var(--ax-blue)' }"
       valueClass="blue"

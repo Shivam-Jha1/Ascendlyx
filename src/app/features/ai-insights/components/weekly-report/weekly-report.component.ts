@@ -30,10 +30,4 @@ export class WeeklyReportComponent {
     return r.habits_total_possible - r.habits_completed;
   });
 
-  streakLabel = computed(() => {
-    const r = this.report();
-    if (!r) return '';
-    // use ai_score_rating as proxy or leave blank
-    return '';
-  });
 }

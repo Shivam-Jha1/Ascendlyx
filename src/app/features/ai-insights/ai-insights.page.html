@@ -9,6 +9,7 @@
     [disabled]="isRefreshing()"
     (click)="refresh()"
     title="Refresh insights"
+    aria-label="Refresh insights"
   >
     <i class="bi" [class.bi-arrow-clockwise]="!isRefreshing()" [class.bi-hourglass-split]="isRefreshing()"></i>
   </button>

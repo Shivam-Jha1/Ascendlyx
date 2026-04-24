@@ -77,6 +77,7 @@ export class AiInsightsPage implements OnInit {
   });
 
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => this.insightsService.stopPolling());
     this.insightsService.loadInsights();
     this.loadDashboard();
   }
