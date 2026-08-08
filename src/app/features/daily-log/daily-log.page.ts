@@ -133,6 +133,17 @@ export class DailyLogPage implements OnInit {
     return `${hour % 12 || 12}:${m} ${ampm}`;
   }
 
+  // Maps a habit category to its tag color class for display
+  categoryTagClass(cat: HabitCategory): string {
+    const map: Partial<Record<HabitCategory, string>> = {
+      fitness: 'tag-green',
+      study: 'tag-purple',
+      mindfulness: 'tag-blue',
+      reading: 'tag-purple',
+    };
+    return map[cat] ?? '';
+  }
+
   // ── Lifecycle ──
   ngOnInit(): void {
     this.loadData();
