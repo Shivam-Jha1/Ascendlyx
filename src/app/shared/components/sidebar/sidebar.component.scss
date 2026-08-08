@@ -1,60 +1,85 @@
+// Local design tokens — scoped to the sidebar only (leaf component,
+// does not wrap <router-outlet>, so these never leak into page content).
+:host {
+  --bg: #0A0A0A;
+  --surface: #111111;
+  --surface3: #222222;
+  --border: #1E1E1E;
+  --border2: #2A2A2A;
+  --text: #F5F5F5;
+  --text2: #888888;
+  --text3: #444444;
+  --accent: #6C63FF;
+  --red: #EF4444;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --r: 6px;
+}
+
 .sidebar {
-  width: var(--ax-sidebar-width);
+  width: 220px;
   flex-shrink: 0;
-  background: var(--ax-card-bg);
-  border-right: 1px solid var(--ax-border);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 24px 0;
+  padding: 0;
   height: 100vh;
   position: sticky;
   top: 0;
   overflow-y: auto;
+  font-family: var(--font);
 }
 
 .sidebar-logo {
-  font-family: var(--ax-font-head);
-  font-size: 22px;
-  font-weight: 800;
-  padding: 0 24px 28px;
-  background: var(--ax-grad);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 20px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
 }
 
 .sidebar-section-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  color: var(--ax-text-muted);
-  padding: 0 24px;
-  margin: 16px 0 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 16px 20px 6px;
+  margin: 0;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 24px;
+  gap: 10px;
+  padding: 8px 20px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ax-text-muted);
-  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text2);
+  transition: all 0.15s;
   position: relative;
   text-decoration: none;
 
-  i { font-size: 18px; width: 22px; text-align: center; }
+  i {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    opacity: 0.7;
+  }
 
   &:hover {
-    color: var(--ax-text-light);
-    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.02);
   }
 
   &.active {
-    color: var(--ax-purple);
-    background: rgba(108, 99, 255, 0.1);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
 
     &::before {
       content: '';
@@ -62,33 +87,33 @@
       left: 0;
       top: 0;
       bottom: 0;
-      width: 3px;
-      background: var(--ax-grad);
-      border-radius: 0 3px 3px 0;
+      width: 2px;
+      background: var(--accent);
     }
   }
 }
 
 .sidebar-badge {
   margin-left: auto;
-  background: var(--ax-purple);
+  background: var(--accent);
   color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
 }
 
 .sidebar-lock {
   margin-left: auto;
-  font-size: 14px;
-  opacity: 0.5;
+  font-size: 12px;
+  opacity: 0.3;
 }
 
 .sidebar-footer {
   margin-top: auto;
-  padding: 16px 24px;
-  border-top: 1px solid var(--ax-border);
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -102,32 +127,40 @@
   flex: 1;
   text-decoration: none;
   color: inherit;
+  min-width: 0;
 }
 
 .sidebar-avatar {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--ax-grad);
+  background: var(--surface3);
+  border: 1px solid var(--border2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
   flex-shrink: 0;
 }
 
+.sidebar-profile-info {
+  min-width: 0;
+}
+
 .sidebar-profile-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ax-text-light);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .sidebar-profile-handle {
-  font-size: 11px;
-  color: var(--ax-text-muted);
-  max-width: 120px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 1px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -136,13 +169,14 @@
 .sidebar-logout {
   background: none;
   border: none;
-  color: var(--ax-text-muted);
-  font-size: 18px;
+  color: var(--text3);
+  font-size: 15px;
   cursor: pointer;
   padding: 4px;
-  transition: color 0.2s;
+  transition: color 0.15s;
+  flex-shrink: 0;
 
   &:hover {
-    color: var(--ax-red);
+    color: var(--red);
   }
 }

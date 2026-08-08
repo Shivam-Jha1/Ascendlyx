@@ -18,104 +18,92 @@
 <!-- Dashboard Content -->
 @if (!loading() && !error() && dashboard(); as data) {
   <!-- Greeting -->
-  <div class="greeting-section">
-    <div class="greeting">{{ greeting() }}, <span class="grad-text">{{ userName() }}</span> 👋</div>
-    <div class="greeting-date">{{ today | date:'EEEE, MMMM d' }} · Let's crush it today!</div>
+  <div class="greeting-block">
+    <div class="greeting">{{ greeting() }}, {{ userName() }}</div>
+    <div class="greeting-sub">{{ today | date:'EEEE, MMMM d' }} — Let's get to work.</div>
   </div>
 
-  <!-- Week Badges -->
-  <div class="ax-card week-card">
-    <div class="cc-header">
-      <div class="cc-title">This Week</div>
-      <div class="week-range">Mon → Sun</div>
-    </div>
-    <div class="week-badges">
-      @for (day of weekDays(); track day.date) {
-        <div class="wb">
-          <div class="wb-circle" [class.done]="day.isDone" [class.today]="day.isToday">
-            @if (day.isDone) { ✓ } @else { {{ day.dayLabel.charAt(0) }} }
-          </div>
-          <div class="wb-day">{{ day.dayLabel }}</div>
+  <!-- Week strip -->
+  <div class="week-strip">
+    @for (day of weekDays(); track day.date) {
+      <div class="wb">
+        <div class="wb-day">{{ day.dayLabel }}</div>
+        <div class="wb-circle" [class.done]="day.isDone" [class.today]="day.isToday">
+          @if (day.isDone) { ✓ } @else { {{ day.dayLabel.charAt(0) }} }
         </div>
-      }
+      </div>
+    }
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-cards-row">
+    <div class="stat-card">
+      <div class="stat-card-label">Day Streak</div>
+      <div class="stat-card-value amber">{{ bestStreak() }}</div>
+      <div class="stat-card-delta" [class.up]="isPersonalBest()">
+        @if (isPersonalBest()) { ↑ Personal best } @else { Keep it going }
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Habits Today</div>
+      <div class="stat-card-value accent">{{ habitsCompletedToday() }} / {{ totalHabits() }}</div>
+      <div class="stat-card-delta up">↑ {{ habitCompletionPct() }}% completion</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">AI Score</div>
+      <div class="stat-card-value blue">{{ aiScore() != null ? aiScore() : '--' }}</div>
+      <div class="stat-card-delta" [class.up]="aiScore() != null">
+        @if (aiScore() != null) { ↑ Score this week } @else { No data yet }
+      </div>
     </div>
   </div>
 
-  <!-- Stat Cards -->
-  <div class="dashboard-grid">
-    <app-stat-card
-      icon="🔥"
-      [value]="'' + bestStreak()"
-      label="Day Streak"
-      [badge]="isPersonalBest() ? '↑ Personal Best' : ''"
-      colorClass="green"
-      glowClass="glow-green"
-      valueClass="green"
-    />
-    <app-stat-card
-      icon="✅"
-      [value]="habitsCompletedToday() + '/' + totalHabits()"
-      label="Habits Today"
-      [badge]="'↑ ' + habitCompletionPct() + '%'"
-      colorClass="purple"
-      [badgeStyle]="{ background: 'rgba(108,99,255,0.1)', 'border-color': 'rgba(108,99,255,0.3)', color: 'var(--ax-purple)' }"
-      valueClass="grad"
-    />
-    <app-stat-card
-      icon="⚡"
-      [value]="aiScore() != null ? '' + aiScore() : '--'"
-      label="AI Score"
-      [badge]="aiScore() != null ? '↑ Score' : ''"
-      colorClass="blue"
-      [badgeStyle]="{ background: 'rgba(0,194,255,0.1)', 'border-color': 'rgba(0,194,255,0.25)', color: 'var(--ax-blue)' }"
-      valueClass="blue"
-    />
-  </div>
-
-  <!-- Charts Row -->
-  <div class="dashboard-row">
-    <!-- Weekly Productivity Bar Chart -->
-    <div class="chart-card">
+  <!-- Charts row -->
+  <div class="dash-row">
+    <div>
       <div class="cc-header">
         <div class="cc-title">Weekly Productivity</div>
-        <div class="cc-period">This Week ▾</div>
+        <div class="cc-meta">THIS WEEK</div>
       </div>
-      <div class="bar-chart">
+      <div class="bar-chart-row">
         @for (bar of weeklyBars(); track bar.date) {
-          <div class="bar-wrap">
+          <div class="bar-col">
             <div
-              class="bar"
-              [class.bar-today]="bar.isToday"
-              [class.bar-future]="bar.isFuture"
+              class="bar-fill"
+              [class.today]="bar.isToday"
               [style.height.%]="bar.isFuture ? 10 : (bar.pct || 5)"
+              [style.opacity]="bar.isFuture ? 0.15 : null"
             ></div>
-            <div class="bar-label" [class.bar-label-today]="bar.isToday">{{ bar.dayLabel }}</div>
+            <div class="bar-lbl" [class.today]="bar.isToday">{{ bar.dayLabel }}</div>
           </div>
         }
       </div>
     </div>
-
-    <!-- Today's Habits Ring -->
-    <div class="chart-card ring-card">
-      <div class="cc-title ring-title">Today's Habits</div>
-      <div class="ring-chart" [style.background]="
-        'conic-gradient(var(--ax-purple) ' + (habitCompletionPct() * 3.6) + 'deg, rgba(255,255,255,0.07) 0deg)'
-      ">
+    <div class="ring-col">
+      <div class="cc-header center">
+        <div class="cc-title">Today's Habits</div>
+      </div>
+      <div
+        class="ring-chart"
+        [style.background]="
+          'conic-gradient(var(--accent) ' + (habitCompletionPct() * 3.6) + 'deg, var(--border2) ' + (habitCompletionPct() * 3.6) + 'deg 360deg)'
+        "
+      >
         <div class="ring-inner">
-          <div class="ring-pct grad-text">{{ habitCompletionPct() }}%</div>
-          <div class="ring-label">Done</div>
+          <div class="ring-pct">{{ habitCompletionPct() }}%</div>
+          <div class="ring-lbl">Done</div>
         </div>
       </div>
-      <div class="ring-summary">{{ habitsCompletedToday() }} of {{ totalHabits() }} completed</div>
+      <div class="ring-summary">{{ habitsCompletedToday() }} of {{ totalHabits() }}</div>
     </div>
   </div>
 
   <!-- Goal Progress -->
   @if (topGoals().length > 0) {
-    <div class="chart-card goals-card">
+    <div class="chart-card">
       <div class="cc-header">
         <div class="cc-title">Goal Progress</div>
-        <button type="button" class="see-all" (click)="navigateToGoals()">View All</button>
+        <button type="button" class="see-all" (click)="navigateToGoals()">VIEW ALL →</button>
       </div>
       @for (goal of topGoals(); track goal.id; let i = $index) {
         <div class="goal-item">
@@ -123,15 +111,18 @@
             <span class="goal-name">{{ goal.title }}</span>
             <span class="goal-pct">{{ goal.progress_percentage | number:'1.0-0' }}%</span>
           </div>
-          <div class="ax-progress">
-            <div class="ax-progress-fill" [style.width.%]="goal.progress_percentage"
-                 [style.background]="goalProgressColor(i)"></div>
+          <div class="pbar">
+            <div
+              class="pbar-fill"
+              [style.width.%]="goal.progress_percentage"
+              [style.background]="goalProgressColor(i)"
+            ></div>
           </div>
         </div>
       }
     </div>
   } @else {
-    <div class="chart-card goals-card">
+    <div class="chart-card">
       <div class="cc-header">
         <div class="cc-title">Goal Progress</div>
       </div>
@@ -147,24 +138,22 @@
   <!-- AI Coach Insight Widget -->
   @if (aiScore()) {
     <button type="button" class="ai-widget" (click)="navigateToAiInsights()">
-      <div class="ai-w-title"><span class="ai-dot"></span> AI Coach Insight</div>
+      <div class="ai-w-label"><span class="ai-dot"></span>AI Coach Insight</div>
       <div class="ai-w-text" [innerHTML]="aiInsightText()"></div>
     </button>
   }
 
   <!-- FAB -->
-  <button class="fab" (click)="openAddHabit()" aria-label="Add new habit">
-    <i class="bi bi-plus-lg"></i>
-  </button>
+  <button class="fab" (click)="openAddHabit()" aria-label="Add new habit">+</button>
 }
 
 <!-- Add Habit Modal -->
 @if (showAddHabit()) {
   <div class="modal-overlay" (click)="closeAddHabit()">
     <div class="modal-box" (click)="$event.stopPropagation()">
-      <div class="modal-header-row">
-        <h3 class="modal-title">Add New Habit ✨</h3>
-        <button class="modal-close" type="button" aria-label="Close" (click)="closeAddHabit()">&times;</button>
+      <div class="modal-head-row">
+        <div class="modal-title">Add New Habit</div>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeAddHabit()">✕</button>
       </div>
 
       <!-- Error -->
@@ -178,7 +167,6 @@
         <input
           id="habitName"
           type="text"
-          class="form-control"
           placeholder="e.g. Morning Run, Read 30 pages..."
           [(ngModel)]="habitForm.name"
           maxlength="100"
@@ -188,16 +176,16 @@
       <!-- Category -->
       <div class="form-group">
         <label>Category</label>
-        <div class="category-chips">
+        <div class="tag-row">
           @for (cat of categories; track cat) {
             <button
               type="button"
-              class="category-chip"
+              class="tag-chip"
+              [class]="categoryTagClass(cat)"
               [class.selected]="habitForm.category === cat"
               (click)="selectCategory(cat)"
             >
-              @if (cat === 'custom') { <span>+ Custom</span> }
-              @else { {{ cat | titlecase }} }
+              @if (cat === 'custom') { + Custom } @else { {{ cat | titlecase }} }
             </button>
           }
         </div>
@@ -210,17 +198,15 @@
           <input
             id="reminderTime"
             type="time"
-            class="form-control"
             [(ngModel)]="habitForm.reminder_time"
           >
         </div>
         <div class="form-group flex-1">
-          <label for="expectedDuration">Expected Duration</label>
+          <label for="expectedDuration">Duration</label>
           <div class="input-suffix">
             <input
               id="expectedDuration"
               type="number"
-              class="form-control"
               [(ngModel)]="habitForm.expected_duration"
               min="1"
               max="480"
@@ -232,15 +218,15 @@
       </div>
 
       <!-- Actions -->
-      <div class="modal-actions">
-        <button type="button" class="btn-ghost" (click)="closeAddHabit()">Cancel</button>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeAddHabit()">Cancel</button>
         <button
           type="button"
-          class="btn-grad"
+          class="btn-primary"
           [disabled]="savingHabit()"
           (click)="saveHabit()"
         >
-          @if (savingHabit()) { Saving... } @else { Save Habit ✓ }
+          @if (savingHabit()) { Saving... } @else { Save Habit → }
         </button>
       </div>
     </div>

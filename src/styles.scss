@@ -67,6 +67,30 @@
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04);
   --font-heading: 'DM Serif Display', serif;
   --font-body: 'DM Sans', sans-serif;
+
+  // ── New Design System Tokens (ascendlyx.html reference) ──
+  // Note: --border is intentionally NOT redefined here (Profile page already
+  // relies on the value above). Components adopting the new design define
+  // their own local --border/--border2 in :host to stay isolated.
+  --bg: #0A0A0A;
+  --surface: #111111;
+  --surface2: #1A1A1A;
+  --surface3: #222222;
+  --border2: #2A2A2A;
+  --text: #F5F5F5;
+  --text2: #888888;
+  --text3: #444444;
+  --accent: #6C63FF;
+  --accent-dim: rgba(108, 99, 255, 0.07);
+  --accent-border: rgba(108, 99, 255, 0.2);
+  --green: #22C55E;
+  --green-dim: rgba(34, 197, 94, 0.08);
+  --blue: #00C2FF;
+  --amber: #F59E0B;
+  --red: #EF4444;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --r: 6px;
 }
 
 // ─── Base Reset & Body ───
@@ -655,5 +679,167 @@ a {
 
   &:hover {
     color: var(--ax-blue);
+  }
+}
+
+// ═══════════════════════════════════════
+//  NEW DESIGN SYSTEM — SHARED UTILITIES
+//  (additive, non-colliding with legacy .ax-* classes above;
+//   used by pages migrated to the ascendlyx.html reference design)
+// ═══════════════════════════════════════
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 1px;
+    background: var(--text3);
+  }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+}
+
+.card2 {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+}
+
+// Hairline divider grid (children become separated by 1px lines)
+.grid-divider {
+  background: var(--border2);
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  overflow: hidden;
+
+  > * {
+    background: var(--bg);
+  }
+}
+
+.pbar {
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+}
+
+.pbar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+
+  &.tag-purple {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+  }
+  &.tag-green {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  &.tag-blue {
+    background: rgba(0, 194, 255, 0.07);
+    color: var(--blue);
+    border: 1px solid rgba(0, 194, 255, 0.18);
+  }
+  &.tag-amber {
+    background: rgba(245, 158, 11, 0.08);
+    color: var(--amber);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+  &.tag-red {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--red);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+}
+
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--r);
+  padding: 9px 18px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 9px 18px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    border-color: var(--text3);
+    color: var(--text);
+  }
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  padding: 9px 18px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
   }
 }

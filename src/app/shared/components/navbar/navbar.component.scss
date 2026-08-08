@@ -1,39 +1,72 @@
+// Local design tokens — scoped to the navbar only (leaf component,
+// sibling of the routed page content, so these never leak into it).
+:host {
+  --bg: #0A0A0A;
+  --surface: #111111;
+  --surface3: #222222;
+  --border: #1E1E1E;
+  --border2: #2A2A2A;
+  --text: #F5F5F5;
+  --text2: #888888;
+  --text3: #444444;
+  --accent: #6C63FF;
+  --amber: #F59E0B;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
 .top-navbar {
-  height: var(--ax-navbar-height);
-  background: rgba(17, 24, 39, 0.9);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--ax-border);
+  height: 50px;
+  background: rgba(10, 10, 10, 0.96);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 28px;
-  gap: 16px;
+  padding: 0 24px;
+  gap: 14px;
   position: sticky;
   top: 0;
   z-index: 100;
+  font-family: var(--font);
 }
 
 .navbar-search {
   flex: 1;
-  max-width: 360px;
+  max-width: 300px;
   position: relative;
 
   .search-icon {
     position: absolute;
-    left: 13px;
+    left: 11px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--ax-text-muted);
-    font-size: 14px;
+    color: var(--text3);
+    font-size: 12px;
     z-index: 1;
   }
 
   .form-control {
-    padding-left: 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.08);
-    font-size: 13px;
-    height: 38px;
-    border-radius: 10px;
+    padding-left: 34px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 12px;
+    height: 32px;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+      box-shadow: none;
+      color: var(--text);
+    }
+
+    &::placeholder {
+      color: var(--text3);
+    }
   }
 }
 
@@ -41,87 +74,87 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .streak-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(255, 160, 0, 0.1);
-  border: 1px solid rgba(255, 160, 0, 0.25);
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ax-orange);
+  gap: 5px;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--amber);
 
-  i { font-size: 15px; }
+  i { font-size: 12px; }
 }
 
 .notif-btn {
-  width: 38px;
-  height: 38px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--ax-border);
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 16px;
-  color: var(--ax-text-light);
+  font-size: 13px;
+  color: var(--text2);
   position: relative;
-  transition: all 0.2s;
+  transition: border-color 0.15s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--border2);
   }
 }
 
 .notif-dot {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 7px;
-  height: 7px;
-  background: var(--ax-purple);
+  top: 7px;
+  right: 7px;
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
   border-radius: 50%;
-  border: 1.5px solid var(--ax-card-bg);
 }
 
 .ai-coach-btn {
-  background: var(--ax-grad);
-  border: none;
-  border-radius: 10px;
-  padding: 8px 18px;
-  color: #fff;
-  font-family: var(--ax-font-body);
-  font-size: 13px;
-  font-weight: 600;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  padding: 6px 14px;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 0 20px rgba(108, 99, 255, 0.4);
-  animation: ax-pulse-glow 2s infinite;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 
   &:hover {
-    box-shadow: 0 0 30px rgba(108, 99, 255, 0.6);
+    border-color: var(--text3);
+    color: var(--text);
   }
 }
 
 .navbar-avatar {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--ax-grad);
+  background: var(--surface3);
+  border: 1px solid var(--border2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
   cursor: pointer;
-  border: 2px solid rgba(108, 99, 255, 0.5);
 }

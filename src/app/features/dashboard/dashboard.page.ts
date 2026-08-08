@@ -8,7 +8,6 @@ import { finalize } from 'rxjs';
 import { DashboardService, CreateHabitPayload } from '../../core/services/dashboard.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardResponse, Habit, Goal, DaySummary, HabitCategory } from '../../core/models/dashboard.model';
-import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
@@ -19,7 +18,7 @@ const CATEGORIES: HabitCategory[] = ['fitness', 'study', 'mindfulness', 'reading
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, StatCardComponent, LoaderComponent, EmptyStateComponent],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, LoaderComponent, EmptyStateComponent],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -137,8 +136,19 @@ export class DashboardPage implements OnInit {
   });
 
   goalProgressColor(index: number): string {
-    const colors = ['var(--ax-grad)', 'var(--ax-blue)', 'var(--ax-green)'];
+    const colors = ['var(--accent)', 'var(--blue)', 'var(--green)'];
     return colors[index % colors.length];
+  }
+
+  // Maps a habit category to its tag color class for the add-habit modal chips
+  categoryTagClass(cat: HabitCategory): string {
+    const map: Partial<Record<HabitCategory, string>> = {
+      fitness: 'tag-green',
+      study: 'tag-purple',
+      mindfulness: 'tag-blue',
+      reading: 'tag-purple',
+    };
+    return map[cat] ?? '';
   }
 
   ngOnInit(): void {
