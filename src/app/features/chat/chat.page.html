@@ -69,7 +69,7 @@
             (click)="selectConversation(conv)"
           >
             <div class="ci-av-wrap">
-              <div class="ci-av ai-av">🤖</div>
+              <div class="ci-av">🤖</div>
             </div>
             <div class="ci-body">
               <div class="ci-top">
@@ -141,7 +141,7 @@
               (click)="startConversationByUsername(friend.username)"
             >
               <div class="ci-av-wrap">
-                <div class="ci-av" [style.background]="avatarColor(friend.avatar_initial)">
+                <div class="ci-av">
                   {{ friend.avatar_initial }}
                 </div>
               </div>
@@ -182,10 +182,9 @@
       <div class="chat-head">
         <div class="ch-left">
           @if (activeConversation()!.is_ai_coach) {
-            <div class="ch-av ai-av-hd">🤖</div>
+            <div class="ch-av">🤖</div>
           } @else {
-            <div class="ch-av"
-              [style.background]="avatarColor(activeConversation()!.other_participant.avatar_initial)">
+            <div class="ch-av">
               {{ activeConversation()!.other_participant.avatar_initial }}
             </div>
           }
@@ -243,10 +242,9 @@
 
             @if (!msg.is_mine) {
               @if (activeConversation()!.is_ai_coach) {
-                <div class="msg-av ai-av-msg">🤖</div>
+                <div class="msg-av">🤖</div>
               } @else {
-                <div class="msg-av"
-                  [style.background]="avatarColor(activeConversation()!.other_participant.avatar_initial)">
+                <div class="msg-av">
                   {{ activeConversation()!.other_participant.avatar_initial }}
                 </div>
               }
@@ -293,10 +291,9 @@
         @if (activeConversation()!.typingIndicator || (activeConversation()!.is_ai_coach && isAiReplying())) {
           <div class="msg-row theirs">
             @if (activeConversation()!.is_ai_coach) {
-              <div class="msg-av ai-av-msg">🤖</div>
+              <div class="msg-av">🤖</div>
             } @else {
-              <div class="msg-av"
-                [style.background]="avatarColor(activeConversation()!.other_participant.avatar_initial)">
+              <div class="msg-av">
                 {{ activeConversation()!.other_participant.avatar_initial }}
               </div>
             }
