@@ -50,7 +50,7 @@
   <!-- ── Page Header ── -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Friends <span class="title-emoji">👥</span></h1>
+      <h1 class="page-title">Friends</h1>
       <p class="page-sub">Stay accountable and motivated together</p>
     </div>
   </div>
@@ -79,7 +79,7 @@
         <div class="friends-list">
           @for (friend of visibleFriends(); track trackByFriendId($index, friend)) {
             <div class="friend-item">
-              <div class="friend-avatar" [style.background]="avatarColor(friend.avatar_initial)">
+              <div class="friend-avatar">
                 {{ friend.avatar_initial }}
               </div>
               <div class="friend-info">
@@ -88,16 +88,14 @@
                   🔥 {{ friend.current_streak }} day streak
                 </span>
               </div>
-              <div class="friend-streak-badge" [style.color]="'var(--accent-orange)'">
-                🔥 {{ friend.current_streak }}
-              </div>
+              <div class="friend-streak-badge">{{ friend.current_streak }}</div>
             </div>
           }
         </div>
 
         @if (friendsTotal() > 5) {
           <button class="view-all-btn">
-            View all {{ friendsTotal() }} friends →
+            View all {{ friendsTotal() }} →
           </button>
         }
       }
@@ -185,7 +183,6 @@
               <div class="post-author">
                 <div
                   class="post-avatar"
-                  [style.background]="avatarColor(post.author.avatar_initial)"
                   [attr.aria-label]="post.author.name"
                 >
                   {{ post.author.avatar_initial }}
@@ -193,8 +190,7 @@
                 <div class="post-author-info">
                   <span class="post-author-name">{{ post.author.name }}</span>
                   <span class="post-author-streak">
-                    <span class="streak-dot"></span>
-                    {{ post.author.current_streak }} days
+                    🔥 {{ post.author.current_streak }} days
                   </span>
                 </div>
               </div>
