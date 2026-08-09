@@ -1,7 +1,7 @@
-<!-- ── Page Header ─────────────────────────────────────── -->
+<!-- ── Page Header ── -->
 <div class="page-header">
   <div class="header-left">
-    <h1 class="page-title">AI Insights <span class="emoji">🤖</span></h1>
+    <h1 class="page-title">AI Insights</h1>
     <p class="page-sub">Your personalized performance analysis</p>
   </div>
   <button
@@ -15,20 +15,20 @@
   </button>
 </div>
 
-<!-- ── Toast ───────────────────────────────────────────── -->
+<!-- ── Toast ── -->
 @if (toastMessage()) {
   <div class="toast-banner">{{ toastMessage() }}</div>
 }
 
-<!-- ── Stale banner ────────────────────────────────────── -->
+<!-- ── Stale banner ── -->
 @if (isStale() && !isLoading()) {
   <div class="stale-banner">
     <span class="stale-pulse"></span>
-    ✨ AI is analyzing your week… refreshes automatically
+    AI is analyzing your week — refreshes automatically
   </div>
 }
 
-<!-- ── Error ───────────────────────────────────────────── -->
+<!-- ── Error ── -->
 @if (error()) {
   <div class="error-state">
     <p>{{ error() }}</p>
@@ -36,7 +36,7 @@
   </div>
 }
 
-<!-- ── No data yet ─────────────────────────────────────── -->
+<!-- ── No data yet ── -->
 @if (hasNoData() && !isLoading()) {
   <div class="no-data-state">
     <p class="no-data-text">No insights computed yet.</p>
@@ -44,7 +44,7 @@
   </div>
 }
 
-<!-- ── Main grid ───────────────────────────────────────── -->
+<!-- ── Main grid ── -->
 @if (!error()) {
   <div class="insights-grid">
 

@@ -1,12 +1,25 @@
 :host {
   display: block;
+
+  --accent: #6C63FF;
+  --accent-dim: rgba(108, 99, 255, 0.07);
+  --accent-border: rgba(108, 99, 255, 0.2);
+  --text: #F5F5F5;
+  --text2: #888888;
+  --text3: #444444;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --r: 6px;
+
+  font-family: var(--font);
+  color: var(--text);
 }
 
 .coach-card {
-  background: linear-gradient(135deg, rgba(108, 99, 255, 0.08), rgba(0, 194, 255, 0.04));
-  border: 1px solid rgba(108, 99, 255, 0.25);
-  border-radius: var(--ax-radius);
-  padding: 22px;
+  background: linear-gradient(135deg, var(--accent-dim), rgba(0, 194, 255, 0.04));
+  border: 1px solid var(--accent-border);
+  border-radius: var(--r);
+  padding: 20px;
 }
 
 .coach-header {
@@ -20,25 +33,26 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--ax-purple);
+  background: var(--accent);
   animation: pulse 2s infinite;
   flex-shrink: 0;
 }
 
 .coach-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ax-purple);
+  color: var(--accent);
 }
 
 .coach-message {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.65;
-  color: var(--ax-text-light);
+  color: var(--text2);
 
-  &.muted { color: var(--ax-text-muted); font-style: italic; }
+  &.muted { color: var(--text3); font-style: italic; }
 }
 
 .coach-shimmer {
@@ -48,8 +62,9 @@
 }
 
 .thinking-text {
-  font-size: 12px;
-  color: var(--ax-text-muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
   margin-top: 4px;
 }
 

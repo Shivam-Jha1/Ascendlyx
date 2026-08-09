@@ -1,23 +1,54 @@
+:host {
+  display: block;
+
+  --bg: #0A0A0A;
+  --border: #1E1E1E;
+  --border2: #2A2A2A;
+  --text: #F5F5F5;
+  --text2: #888888;
+  --text3: #444444;
+  --accent: #6C63FF;
+  --green: #22C55E;
+  --blue: #00C2FF;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --r: 6px;
+
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.chart-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+}
+
+.score-card {
+  text-align: center;
+}
+
 .score-title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  font-family: var(--ax-font-head);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   margin-bottom: 20px;
 
   .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--ax-purple);
+    background: var(--accent);
     animation: pulse 2s infinite;
     flex-shrink: 0;
   }
 }
 
-// ── Gauge ──────────────────────────────────────────────────────────────────
+// ── Gauge ──
 .gauge-wrap {
   display: flex;
   justify-content: center;
@@ -35,42 +66,43 @@
 }
 
 .gauge-num {
-  font-family: var(--ax-font-head);
   font-size: 26px;
-  font-weight: 800;
-  fill: var(--ax-text-light);
+  font-weight: 700;
+  fill: var(--text);
 }
 .gauge-sub {
-  font-size: 11px;
-  fill: var(--ax-text-muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  fill: var(--text3);
 }
 
-// ── Rating ─────────────────────────────────────────────────────────────────
+// ── Rating ──
 .rating-row {
   text-align: center;
   margin-bottom: 4px;
 }
 
 .rating-word {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .percentile-label {
   text-align: center;
-  font-size: 12px;
-  color: var(--ax-text-muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
   margin-bottom: 20px;
 }
 
 .analyzing-text {
   text-align: center;
-  font-size: 13px;
-  color: var(--ax-text-muted);
+  font-size: 12px;
+  color: var(--text3);
   margin: 8px 0 16px;
 }
 
-// ── Sub-scores ─────────────────────────────────────────────────────────────
+// ── Sub-scores ──
 .sub-scores {
   display: flex;
   flex-direction: column;
@@ -87,34 +119,35 @@
 }
 
 .sub-label {
-  font-size: 13px;
-  color: var(--ax-text-muted);
+  font-size: 12px;
+  color: var(--text2);
 }
 
 .sub-pct {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ax-text-light);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .progress-track {
-  height: 5px;
-  background: rgba(255, 255, 255, 0.07);
-  border-radius: 3px;
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 2px;
   transition: width 0.9s ease-out;
 
-  &.green { background: var(--ax-green); }
-  &.blue  { background: var(--ax-purple); }
-  &.cyan  { background: var(--ax-blue); }
+  &.green { background: var(--green); }
+  &.blue  { background: var(--accent); }
+  &.cyan  { background: var(--blue); }
 }
 
-// ── Skeletons ──────────────────────────────────────────────────────────────
+// ── Skeletons ──
 .gauge-skeleton {
   width: 140px;
   height: 140px;
@@ -123,8 +156,8 @@
 }
 
 .no-data {
-  color: var(--ax-text-muted);
-  font-size: 13px;
+  color: var(--text3);
+  font-size: 12px;
   padding: 20px 0;
   text-align: center;
 }
@@ -142,7 +175,7 @@
 }
 
 .sk-label { width: 90px; height: 12px; border-radius: 6px; }
-.sk-bar   { width: 100%; height: 5px; border-radius: 3px; }
+.sk-bar   { width: 100%; height: 3px; border-radius: 3px; }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }

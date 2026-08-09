@@ -116,9 +116,9 @@ export class ProductivityChartComponent implements AfterViewInit, OnDestroy {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(17,24,39,0.95)',
-          titleColor: '#E5E7EB',
-          bodyColor: '#8892A4',
+          backgroundColor: 'rgba(17,17,17,0.95)',
+          titleColor: '#F5F5F5',
+          bodyColor: '#888888',
           borderColor: 'rgba(108,99,255,0.3)',
           borderWidth: 1,
           padding: 10,
@@ -141,8 +141,8 @@ export class ProductivityChartComponent implements AfterViewInit, OnDestroy {
           border: { display: false },
           ticks: {
             color: (ctx2) =>
-              ctx2.index === todayIdx ? '#00C2FF' : '#8892A4',
-            font: { size: 12, family: 'DM Sans' },
+              ctx2.index === todayIdx ? '#00C2FF' : '#888888',
+            font: { size: 12, family: 'Inter' },
           },
         },
         y: {
