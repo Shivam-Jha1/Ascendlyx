@@ -12,19 +12,19 @@
 @if (!loading() && !error()) {
   <!-- Page Header -->
   <div class="page-header">
-    <div class="page-header-left">
-      <h1 class="page-title">My Goals <span class="emoji">🎯</span></h1>
-      <p class="page-sub">Set ambitious goals and track every milestone</p>
-    </div>
-    <div class="page-header-right">
-      <button class="btn-filter" [class.active]="!includeCompleted()" (click)="toggleFilter()">
-        <i class="bi bi-funnel"></i>
-        {{ includeCompleted() ? 'All Goals' : 'Active Only' }}
-      </button>
-      <button class="btn-add" (click)="openAddModal()">
-        <i class="bi bi-plus-lg"></i> Add Goal
-      </button>
-    </div>
+    <div class="page-title">Goals</div>
+    <div class="page-sub">Set ambitious goals and track every milestone</div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="filter-btn" [class.active]="!includeCompleted()" (click)="toggleFilter()">
+      <i class="bi bi-funnel"></i>
+      {{ includeCompleted() ? 'All Goals' : 'Active Only' }}
+    </button>
+    <button class="add-btn" (click)="openAddModal()">
+      <i class="bi bi-plus-lg"></i> Add Goal
+    </button>
   </div>
 
   <!-- Empty state -->
@@ -44,20 +44,17 @@
         <div class="goal-card" [class.completed]="goal.is_completed">
 
           <!-- Card Header -->
-          <div class="goal-card-header">
-            <span class="priority-badge" [ngClass]="priorityClass(goal.priority)">
+          <div class="goal-card-top">
+            <span class="tag" [ngClass]="priorityClass(goal.priority)">
               {{ priorityLabel(goal.priority) }}
             </span>
             <div class="goal-header-right">
               @if (goal.deadline) {
-                <span class="goal-deadline">
-                  <i class="bi bi-calendar3"></i>
-                  {{ goal.deadline | date:'MMM d, y' }}
-                </span>
+                <span class="goal-deadline">{{ goal.deadline | date:'MMM d, y' }}</span>
               }
               <!-- Edit -->
               <button
-                class="btn-icon-edit"
+                class="icon-btn"
                 title="Edit goal"
                 aria-label="Edit goal"
                 (click)="openEditModal(goal); $event.stopPropagation()"
@@ -66,7 +63,7 @@
               </button>
               <!-- Delete -->
               <button
-                class="btn-icon-danger"
+                class="icon-btn danger"
                 title="Delete goal"
                 aria-label="Delete goal"
                 (click)="deleteGoal(goal.id); $event.stopPropagation()"
@@ -77,28 +74,28 @@
           </div>
 
           <!-- Title & Description -->
-          <h3 class="goal-title">{{ goal.title }}</h3>
+          <div class="goal-card-title">{{ goal.title }}</div>
           @if (goal.description) {
-            <p class="goal-desc">{{ goal.description }}</p>
+            <p class="goal-card-desc">{{ goal.description }}</p>
           }
 
           <!-- Progress Section -->
-          <div class="goal-progress-section">
-            <div class="goal-progress-label">
-              <span>Progress</span>
-              <span class="goal-progress-pct">
+          <div class="goal-item">
+            <div class="goal-top">
+              <span class="goal-name">Progress</span>
+              <span class="goal-pct">
                 {{ goal.progress_percentage | number:'1.0-0' }}%
                 @if (goal.total_milestones > 0) {
-                  <span class="milestone-count"> · {{ goal.completed_milestones }}/{{ goal.total_milestones }}</span>
+                  <span> · {{ goal.completed_milestones }}/{{ goal.total_milestones }}</span>
                 }
                 @if (goal.target_value) {
-                  <span class="target-count"> · {{ goal.current_value }}/{{ goal.target_value }}{{ goal.unit ? ' ' + goal.unit : '' }}</span>
+                  <span> · {{ goal.current_value }}/{{ goal.target_value }}{{ goal.unit ? ' ' + goal.unit : '' }}</span>
                 }
               </span>
             </div>
-            <div class="ax-progress">
+            <div class="pbar">
               <div
-                class="ax-progress-fill"
+                class="pbar-fill"
                 [ngClass]="progressBarClass(goal)"
                 [style.width.%]="goal.progress_percentage"
               ></div>
@@ -152,9 +149,9 @@
 @if (showEditModal()) {
   <div class="modal-overlay" (click)="closeEditModal()">
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editGoalModalTitle" (click)="$event.stopPropagation()">
-      <div class="modal-header-row">
-        <h3 id="editGoalModalTitle" class="modal-title">Edit Goal ✏️</h3>
-        <button class="modal-close" type="button" aria-label="Close" (click)="closeEditModal()">&times;</button>
+      <div class="modal-head-row">
+        <h3 id="editGoalModalTitle" class="modal-title">Edit Goal</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeEditModal()">✕</button>
       </div>
 
       @if (editFormError(); as err) {
@@ -164,7 +161,7 @@
       <!-- Title -->
       <div class="form-group">
         <label for="editGoalTitle">Goal Title <span class="required">*</span></label>
-        <input id="editGoalTitle" type="text" class="form-control"
+        <input id="editGoalTitle" type="text"
           placeholder="e.g. Run a marathon, Read 12 books..."
           [(ngModel)]="editForm.title" maxlength="200">
       </div>
@@ -172,7 +169,7 @@
       <!-- Description -->
       <div class="form-group">
         <label for="editGoalDesc">Description</label>
-        <textarea id="editGoalDesc" class="form-control" rows="2"
+        <textarea id="editGoalDesc" rows="2"
           placeholder="Optional details about your goal..."
           [(ngModel)]="editForm.description" maxlength="500"></textarea>
       </div>
@@ -181,7 +178,7 @@
       <div class="form-row">
         <div class="form-group flex-1">
           <label for="editGoalPriority">Priority</label>
-          <select id="editGoalPriority" class="form-control" [(ngModel)]="editForm.priority">
+          <select id="editGoalPriority" [(ngModel)]="editForm.priority">
             @for (p of priorities; track p) {
               <option [value]="p">{{ p | titlecase }}</option>
             }
@@ -189,7 +186,7 @@
         </div>
         <div class="form-group flex-1">
           <label for="editGoalCategory">Category</label>
-          <select id="editGoalCategory" class="form-control" [(ngModel)]="editForm.category">
+          <select id="editGoalCategory" [(ngModel)]="editForm.category">
             @for (cat of categories; track cat) {
               <option [value]="cat">{{ cat | titlecase }}</option>
             }
@@ -200,19 +197,19 @@
       <!-- Deadline -->
       <div class="form-group">
         <label for="editGoalDeadline">Deadline</label>
-        <input id="editGoalDeadline" type="date" class="form-control" [(ngModel)]="editForm.deadline">
+        <input id="editGoalDeadline" type="date" [(ngModel)]="editForm.deadline">
       </div>
 
       <!-- Target Value & Unit -->
       <div class="form-row">
         <div class="form-group flex-1">
           <label for="editGoalTarget">Target Value <span class="hint">(numeric goals)</span></label>
-          <input id="editGoalTarget" type="number" class="form-control"
+          <input id="editGoalTarget" type="number"
             placeholder="e.g. 100, 12, 50..." [(ngModel)]="editForm.target_value" min="0">
         </div>
         <div class="form-group flex-1">
           <label for="editGoalUnit">Unit</label>
-          <input id="editGoalUnit" type="text" class="form-control"
+          <input id="editGoalUnit" type="text"
             placeholder="km, books, hours..." [(ngModel)]="editForm.unit" maxlength="30">
         </div>
       </div>
@@ -221,7 +218,7 @@
       <div class="form-group">
         <label>Milestones <span class="hint">(replaces existing)</span></label>
         <div class="milestone-input-row">
-          <input type="text" class="form-control"
+          <input type="text"
             placeholder="Add a milestone step..."
             [(ngModel)]="editMilestoneLabel"
             (keydown)="onEditMilestoneLabelKeydown($event)"
@@ -245,9 +242,9 @@
       </div>
 
       <!-- Actions -->
-      <div class="modal-actions">
-        <button type="button" class="btn-ghost" (click)="closeEditModal()">Cancel</button>
-        <button type="button" class="btn-grad" [disabled]="editFormLoading()" (click)="submitEdit()">
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeEditModal()">Cancel</button>
+        <button type="button" class="btn-primary" [disabled]="editFormLoading()" (click)="submitEdit()">
           @if (editFormLoading()) { Saving... } @else { Save Changes }
         </button>
       </div>
@@ -259,9 +256,9 @@
 @if (showAddModal()) {
   <div class="modal-overlay" (click)="closeAddModal()">
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="addGoalTitle" (click)="$event.stopPropagation()">
-      <div class="modal-header-row">
-        <h3 id="addGoalTitle" class="modal-title">Add New Goal 🎯</h3>
-        <button class="modal-close" type="button" aria-label="Close" (click)="closeAddModal()">&times;</button>
+      <div class="modal-head-row">
+        <h3 id="addGoalTitle" class="modal-title">Add New Goal</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeAddModal()">✕</button>
       </div>
 
       @if (formError(); as err) {
@@ -271,7 +268,7 @@
       <!-- Title -->
       <div class="form-group">
         <label for="goalTitle">Goal Title <span class="required">*</span></label>
-        <input id="goalTitle" type="text" class="form-control"
+        <input id="goalTitle" type="text"
           placeholder="e.g. Run a marathon, Read 12 books..."
           [(ngModel)]="goalForm.title" maxlength="200">
       </div>
@@ -279,7 +276,7 @@
       <!-- Description -->
       <div class="form-group">
         <label for="goalDesc">Description</label>
-        <textarea id="goalDesc" class="form-control" rows="2"
+        <textarea id="goalDesc" rows="2"
           placeholder="Optional details about your goal..."
           [(ngModel)]="goalForm.description" maxlength="500"></textarea>
       </div>
@@ -288,7 +285,7 @@
       <div class="form-row">
         <div class="form-group flex-1">
           <label for="goalPriority">Priority</label>
-          <select id="goalPriority" class="form-control" [(ngModel)]="goalForm.priority">
+          <select id="goalPriority" [(ngModel)]="goalForm.priority">
             @for (p of priorities; track p) {
               <option [value]="p">{{ p | titlecase }}</option>
             }
@@ -296,7 +293,7 @@
         </div>
         <div class="form-group flex-1">
           <label for="goalCategory">Category</label>
-          <select id="goalCategory" class="form-control" [(ngModel)]="goalForm.category">
+          <select id="goalCategory" [(ngModel)]="goalForm.category">
             @for (cat of categories; track cat) {
               <option [value]="cat">{{ cat | titlecase }}</option>
             }
@@ -307,19 +304,19 @@
       <!-- Deadline -->
       <div class="form-group">
         <label for="goalDeadline">Deadline</label>
-        <input id="goalDeadline" type="date" class="form-control" [(ngModel)]="goalForm.deadline">
+        <input id="goalDeadline" type="date" [(ngModel)]="goalForm.deadline">
       </div>
 
       <!-- Target Value & Unit -->
       <div class="form-row">
         <div class="form-group flex-1">
           <label for="goalTarget">Target Value <span class="hint">(numeric goals)</span></label>
-          <input id="goalTarget" type="number" class="form-control"
+          <input id="goalTarget" type="number"
             placeholder="e.g. 100, 12, 50..." [(ngModel)]="goalForm.target_value" min="0">
         </div>
         <div class="form-group flex-1">
           <label for="goalUnit">Unit</label>
-          <input id="goalUnit" type="text" class="form-control"
+          <input id="goalUnit" type="text"
             placeholder="km, books, hours..." [(ngModel)]="goalForm.unit" maxlength="30">
         </div>
       </div>
@@ -328,7 +325,7 @@
       <div class="form-group">
         <label>Milestones <span class="hint">(optional steps)</span></label>
         <div class="milestone-input-row">
-          <input type="text" class="form-control"
+          <input type="text"
             placeholder="Add a milestone step..."
             [(ngModel)]="newMilestoneLabel"
             (keydown)="onMilestoneLabelKeydown($event)"
@@ -352,9 +349,9 @@
       </div>
 
       <!-- Actions -->
-      <div class="modal-actions">
-        <button type="button" class="btn-ghost" (click)="closeAddModal()">Cancel</button>
-        <button type="button" class="btn-grad" [disabled]="formLoading()" (click)="submitGoal()">
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeAddModal()">Cancel</button>
+        <button type="button" class="btn-primary" [disabled]="formLoading()" (click)="submitGoal()">
           @if (formLoading()) { Saving... } @else { Create Goal }
         </button>
       </div>
@@ -365,10 +362,10 @@
 <!-- ═══ Log Progress Modal ═══ -->
 @if (showProgressModal() && progressGoal(); as goal) {
   <div class="modal-overlay" (click)="closeProgressModal()">
-    <div class="modal-box modal-sm" role="dialog" aria-modal="true" aria-labelledby="progressModalTitle" (click)="$event.stopPropagation()">
-      <div class="modal-header-row">
-        <h3 id="progressModalTitle" class="modal-title">Log Progress 📈</h3>
-        <button class="modal-close" type="button" aria-label="Close" (click)="closeProgressModal()">&times;</button>
+    <div class="modal-box modal-compact" role="dialog" aria-modal="true" aria-labelledby="progressModalTitle" (click)="$event.stopPropagation()">
+      <div class="modal-head-row">
+        <h3 id="progressModalTitle" class="modal-title">Log Progress</h3>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeProgressModal()">✕</button>
       </div>
 
       <p class="modal-goal-name">{{ goal.title }}</p>
@@ -380,21 +377,21 @@
 
       <div class="form-group">
         <label for="progressDelta">Amount to add{{ goal.unit ? ' (' + goal.unit + ')' : '' }}</label>
-        <input id="progressDelta" type="number" class="form-control"
+        <input id="progressDelta" type="number"
           placeholder="e.g. 5, -2..."
           [(ngModel)]="progressDelta">
       </div>
 
       <div class="form-group">
         <label for="progressNote">Note <span class="hint">(optional)</span></label>
-        <input id="progressNote" type="text" class="form-control"
+        <input id="progressNote" type="text"
           placeholder="e.g. Morning run, session 3..."
           [(ngModel)]="progressNote" maxlength="200">
       </div>
 
-      <div class="modal-actions">
-        <button type="button" class="btn-ghost" (click)="closeProgressModal()">Cancel</button>
-        <button type="button" class="btn-grad" [disabled]="progressLoading()" (click)="submitProgress()">
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeProgressModal()">Cancel</button>
+        <button type="button" class="btn-primary" [disabled]="progressLoading()" (click)="submitProgress()">
           @if (progressLoading()) { Saving... } @else { Log Progress }
         </button>
       </div>

@@ -111,18 +111,18 @@ export class GoalsPage implements OnInit {
 
   // ── Priority helpers ──
   priorityClass(p: GoalPriority): string {
-    return { high: 'priority-high', medium: 'priority-medium', low: 'priority-low' }[p];
+    return { high: 'tag-red', medium: 'tag-amber', low: 'tag-green' }[p];
   }
 
   priorityLabel(p: GoalPriority): string {
-    return { high: 'HIGH PRIORITY', medium: 'MEDIUM', low: 'LOW' }[p];
+    return { high: 'High Priority', medium: 'Medium', low: 'Low' }[p];
   }
 
   progressBarClass(goal: GoalResponse): string {
     const pct = goal.progress_percentage;
     if (pct >= 80) return 'bar-green';
     if (pct >= 40) return 'bar-blue';
-    return 'bar-orange';
+    return 'bar-amber';
   }
 
   // ── Milestone toggle ──
